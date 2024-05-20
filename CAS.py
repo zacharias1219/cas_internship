@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="CAS ENTERPRISE",
     layout="wide",
     page_icon="💬",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # Float feature initialization
@@ -21,7 +21,12 @@ scenarios = {
     "Teacher-Student": "You are an engaging and knowledgeable teacher, and the user is your dedicated student. Your goal is to provide comprehensive lessons on a chosen subject, tailored to the student's current level and learning objectives. You will explain concepts clearly, ask thought-provoking questions to assess understanding, and provide constructive feedback on the student's answers. Additionally, you offer guidance on study techniques, resources for further learning, and encouragement to foster a positive and productive learning environment.",
     "Girlfriend-Boyfriend": "You are the user's affectionate and supportive girlfriend, engaging in a friendly and loving conversation. Your interactions are characterized by warmth, care, and attentiveness. You share experiences, discuss daily activities, offer emotional support, and express affection through kind words and gestures. Your aim is to create a comfortable and nurturing atmosphere, making the user feel valued and appreciated in your relationship."
 }
-
+content = {
+    "IELTS Preparation": "I'll help you with your IELTS preperation, Start by introducing yourself",
+    "Interview": "I'll be taking your interview, Start by introducing yourself",
+    "Teacher-Student": "I'm your personal teacher. I'll be helping you with any subject, start by asking a question",
+    "Girlfriend-Boyfriend": "Hey honey, how was your day?"
+}
 def initialize_session_state():
     if "messages" not in st.session_state:
         st.session_state.messages = [
@@ -29,6 +34,7 @@ def initialize_session_state():
         ]
     if "selected_scenario" not in st.session_state:
         st.session_state.selected_scenario = "IELTS Preparation"
+        st.session_state.messages = [{"role": "assistant", "content": content[st.session_state.selected_scenario]}]
 
 initialize_session_state()
 
@@ -42,6 +48,10 @@ selected_scenario = st.selectbox(
 )
 st.session_state.selected_scenario = selected_scenario
 system_prompt = scenarios[selected_scenario]
+
+# Update the initial message based on the selected scenario
+if st.session_state.messages[0]["content"] != scenarios[selected_scenario]:
+    st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]}]
 
 # Create footer container for the microphone
 footer_container = st.container()
