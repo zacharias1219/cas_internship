@@ -3,14 +3,14 @@ from utilities.icon import page_icon
 
 st.set_page_config(
     page_title="Blog",
-    page_icon="💬",
+    page_icon="📜",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 
 def main():
-    page_icon("💬")
+    page_icon("📜")
     st.subheader("Blog", divider="red", anchor=False)
 
     st.text(body = """Harnessing the Power of Speech Recognition Models for English Language Learning
