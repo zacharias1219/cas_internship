@@ -29,15 +29,15 @@ content = {
     "Girlfriend-Boyfriend": "Hey honey, how was your day?"
 }
 
-def initialize_session_state():
+def initialize_session_state(content):
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": content["IELTS Preparation"]}]
+        st.session_state.messages = [{"role": "assistant", "content": content}]
     if "selected_scenario" not in st.session_state:
         st.session_state.selected_scenario = "IELTS Preparation"
     if "previous_scenario" not in st.session_state:
         st.session_state.previous_scenario = "IELTS Preparation"
 
-initialize_session_state()
+initialize_session_state(content["IELTS Preparation"])
 
 st.title("English Learning Bot 🤖")
 
@@ -64,7 +64,7 @@ with col3:
     # End session button
     if st.button("End Session"):
         st.session_state.clear()
-        initialize_session_state()
+        initialize_session_state(content[selected_scenario])
         st.experimental_rerun()
 
 # Update the session state if the scenario changes
