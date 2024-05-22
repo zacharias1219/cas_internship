@@ -8,8 +8,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=api_key)
 
-def get_answer(messages):
-    system_message = [{"role": "system", "content": "You are an helpful AI chatbot, that answers questions asked by User."}]
+def get_answer(messages, system_prompt):
+    system_message = [{"role": "system", "content": system_prompt}]
     messages = system_message + messages
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-1106",
