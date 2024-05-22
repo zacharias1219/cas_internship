@@ -1,5 +1,6 @@
 from openai import OpenAI
 import os
+from groq import Groq
 from dotenv import load_dotenv
 import base64
 import streamlit as st
@@ -8,11 +9,13 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=api_key)
 
+groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 def get_answer(messages, system_prompt):
     system_message = [{"role": "system", "content": system_prompt}]
     messages = system_message + messages
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo-1106",
+    response = groq.chat.completions.create(
+        model="LLaMA3-70b-8192",
         messages=messages
     )
     return response.choices[0].message.content

@@ -41,7 +41,7 @@ initialize_session_state(content["IELTS Preparation"])
 
 st.title("English Learning Bot 🤖")
 
-st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session, say goodbye and click on end session to reset.", divider="rainbow", help="If you selected a new situation and it still shows Goodbye. with .. as response, don't worry just continue.")
+st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session, say goodbye and click on reset or select another situation.", divider="rainbow", help="If you selected a new situation and it still shows Goodbye. with .. as response, don't worry just continue.")
 
 # Use columns to place the dropdown, audio recorder, and end session button side by side
 col1, col2, col3 = st.columns([2, 1, 1])
