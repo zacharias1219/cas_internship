@@ -41,7 +41,7 @@ initialize_session_state()
 
 st.title("English Learning Bot 🤖")
 
-st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session clcik on end session to reset.", divider="rainbow")
+st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session click on end session to reset.", divider="rainbow")
 
 # Use columns to place the dropdown, audio recorder, and end session button side by side
 col1, col2, col3 = st.columns([2, 1, 1])
