@@ -41,6 +41,8 @@ initialize_session_state()
 
 st.title("English Learning Bot 🤖")
 
+st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session clcik on end session to reset.", divider="rainbow")
+
 # Use columns to place the dropdown, audio recorder, and end session button side by side
 col1, col2, col3 = st.columns([2, 1, 1])
 
@@ -61,8 +63,9 @@ with col2:
 with col3:
     # End session button
     if st.button("End Session"):
-        st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]}]
-        st.session_state.previous_scenario = selected_scenario
+        st.session_state.clear()
+        initialize_session_state()
+        st.experimental_rerun()
 
 # Update the session state if the scenario changes
 if selected_scenario != st.session_state.selected_scenario:
@@ -92,7 +95,7 @@ if audio_bytes:
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking🤔..."):
-            final_response = get_answer(st.session_state.messages)
+            final_response = get_answer(st.session_state.messages, system_prompt)
         with st.spinner("Generating audio response..."):    
             audio_file = text_to_speech(final_response)
             autoplay_audio(audio_file)
@@ -100,3 +103,6 @@ if st.session_state.messages[-1]["role"] != "assistant":
         st.session_state.messages.append({"role": "assistant", "content": final_response})
         os.remove(audio_file)
 
+
+# Float the footer container and provide CSS to target it with
+footer_container.float("bottom: 2rem;")
