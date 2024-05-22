@@ -65,7 +65,7 @@ with col3:
     if st.button("End Session"):
         st.session_state.clear()
         initialize_session_state(content[selected_scenario])
-        st.experimental_rerun()
+        st.rerun()
 
 # Update the session state if the scenario changes
 if selected_scenario != st.session_state.selected_scenario:
