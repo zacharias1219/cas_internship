@@ -37,7 +37,7 @@ def initialize_session_state(content):
     if "previous_scenario" not in st.session_state:
         st.session_state.previous_scenario = "IELTS Preparation"
 
-initialize_session_state(content["IELTS Preparation"])
+
 
 st.title("English Learning Bot 🤖")
 
@@ -59,6 +59,8 @@ with col2:
     footer_container = st.container()
     with footer_container:
         audio_bytes = audio_recorder()
+        
+initialize_session_state(content[selected_scenario])
 
 with col3:
     # End session button
