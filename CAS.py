@@ -62,7 +62,7 @@ with col2:
 
 with col3:
     # End session button
-    if st.button("End Session"):
+    if st.button("Reset"):
         st.session_state.clear()
         initialize_session_state(content[selected_scenario])
         st.rerun()
