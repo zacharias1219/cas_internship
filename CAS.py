@@ -227,7 +227,7 @@ if st.button("Evaluate Answers"):
         if st.session_state.incorrect_attempts == 0 and result == "correct":
             # Check if all answers were correct and move to next level
             score = evaluate_answers(user_answers, scenario_answers)
-            if score / len(user_answers) >= 0.8:
+            if score / len(user_answers) >= 0.05:
                 next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
                 if next_level:
                     st.session_state.level_progress[selected_scenario] = next_level
