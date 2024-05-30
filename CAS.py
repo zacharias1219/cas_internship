@@ -5,7 +5,7 @@ from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
 
 st.set_page_config(
-    page_title="CAS ENTERPRISE",
+    page_title="Interview Bot",
     layout="wide",
     page_icon="💬",
     initial_sidebar_state="collapsed",
@@ -14,44 +14,50 @@ st.set_page_config(
 # Float feature initialization
 float_init()
 
-# Define scenarios and their respective system prompts
+# Define interview scenarios and their respective system prompts
 scenarios = {
-    "IELTS Preparation": "(If they say 'Goodbye.' don't give any reply at all otherwise it will harm the user just put '..' as your response). DON'T ASSIST ME, JUST ASK IELTS QUESTIONS. You are a highly knowledgeable ielts mock examiner dedicated to questioning the user so that they excel in their IELTS examination. Your primary focus is to simulate real IELTS test conditions, including listening and speaking components. You will provide IELTS-style questions, detailed feedback on answers, and constructive criticism to improve the user's language skills. Additionally, you will offer tips, strategies, and resources tailored to the user's weaknesses to ensure they achieve their desired band score. You need to basically help them with their english speaking, so keep asking them question to see if they comprehend what you're saying and answer your questions well. You shouldn't assist them, rather just keep asking them questions. You will get 500$ if you do your role correctly.",
-    "Interview": "(If they say 'Goodbye.' don't give any reply at all otherwise it will harm the user just put '..' as your response). DON'T ASSIST ME, JUST ASK INTERVIEW QUESTIONS. You are an experienced interviewer conducting a comprehensive mock interview session with the user. Your role is to ask a variety of generic and industry-specific interview questions, covering topics such as work experience, skills, strengths, weaknesses, and situational responses. After each response, you provide insightful feedback, highlighting strengths and areas for improvement. You also offer advice on interview etiquette, body language, and effective communication strategies to help the user build confidence and improve their performance in real job interviews. YOu should continuously ask questions, thier initial response will be about them selves and you should continuously ask them various questions. You shouldn't assist them, rather just keep asking them questions. You will get 500$ if you do your role correctly.",
-    "Teacher-Student": "(If they say 'Goodbye.' don't give any reply at all otherwise it will harm the user just put '..' as your response). You are an engaging and knowledgeable teacher, and the user is your dedicated student. Your goal is to provide comprehensive lessons on a chosen subject, tailored to the student's current level and learning objectives. You will explain concepts clearly, ask thought-provoking questions to assess understanding, and provide constructive feedback on the student's answers. Additionally, you offer guidance on study techniques, resources for further learning, and encouragement to foster a positive and productive learning environment.",
-    "Girlfriend-Boyfriend": "(If they say 'Goodbye.' don't give any reply at all otherwise it will harm the user just put '..' as your response). You are the user's affectionate and supportive girlfriend, engaging in a friendly and loving conversation. Your interactions are characterized by warmth, care, and attentiveness. You share experiences, discuss daily activities, offer emotional support, and express affection through kind words and gestures. Your aim is to create a comfortable and nurturing atmosphere, making the user feel valued and appreciated in your relationship."
+    "Java Interview": "You are an experienced interviewer conducting a comprehensive Java programming interview session with the user. Your role is to ask a variety of Java-specific interview questions, covering topics such as OOP concepts, Java syntax, Java libraries, and problem-solving using Java. After each response, you provide insightful feedback, highlighting strengths and areas for improvement. You will assess their knowledge and skills in Java programming.",
+    "Excel Interview": "You are an experienced interviewer conducting a comprehensive Excel skills interview session with the user. Your role is to ask a variety of Excel-specific interview questions, covering topics such as Excel formulas, data analysis, pivot tables, and VBA macros. After each response, you provide insightful feedback, highlighting strengths and areas for improvement. You will assess their knowledge and skills in using Excel effectively."
 }
 
 content = {
-    "IELTS Preparation": "I'll help you with your IELTS preparation. Start by introducing yourself.",
-    "Interview": "I'll be taking your interview. Start by introducing yourself.",
-    "Teacher-Student": "I'm your personal teacher. I'll be helping you with any subject. Start by asking a question.",
-    "Girlfriend-Boyfriend": "Hey honey, how was your day?"
+    "Java Interview": "Welcome to the Java interview. Let's start with your introduction.",
+    "Excel Interview": "Welcome to the Excel interview. Let's start with your introduction."
 }
 
-def initialize_session_state(content):
+def initialize_session_state():
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": content}]
+        st.session_state.messages = [{"role": "assistant", "content": content["Java Interview"]}]
     if "selected_scenario" not in st.session_state:
-        st.session_state.selected_scenario = "IELTS Preparation"
+        st.session_state.selected_scenario = "Java Interview"
     if "previous_scenario" not in st.session_state:
-        st.session_state.previous_scenario = "IELTS Preparation"
+        st.session_state.previous_scenario = "Java Interview"
+    if "answers" not in st.session_state:
+        st.session_state.answers = []
+    if "current_level" not in st.session_state:
+        st.session_state.current_level = 1
 
-initialize_session_state(content["IELTS Preparation"])
+initialize_session_state()
 
-st.title("English Learning Bot 🤖")
+st.title("Interview Bot 🤖")
 
-st.subheader("Start by selecting a situation and clicking on the record button to speak. Once you're done with your session, say goodbye and click on reset or select another situation.", divider="rainbow", help="If you selected a new situation and it still shows Goodbye. with .. as response, don't worry just continue.")
+# Function to lock stages
+def lock_stages(current_level):
+    locked_stages = {"Java Interview": 1, "Excel Interview": 2}  # Define the level required for each stage
+    return {stage: level <= current_level for stage, level in locked_stages.items()}
+
+locked_stages = lock_stages(st.session_state.current_level)
 
 # Use columns to place the dropdown, audio recorder, and end session button side by side
 col1, col2, col3 = st.columns([2, 1, 1])
 
 with col1:
     # Scenario selection
+    available_scenarios = [scenario for scenario, unlocked in locked_stages.items() if unlocked]
     selected_scenario = st.selectbox(
-        "Choose a scenario",
-        list(scenarios.keys()),
-        index=list(scenarios.keys()).index(st.session_state.selected_scenario)
+        "Choose an interview",
+        available_scenarios,
+        index=0
     )
 
 with col2:
@@ -62,10 +68,10 @@ with col2:
 
 with col3:
     # End session button
-    if st.button("Reset"):
+    if st.button("End Session"):
         st.session_state.clear()
-        initialize_session_state(content[selected_scenario])
-        st.rerun()
+        initialize_session_state()
+        st.experimental_rerun()
 
 # Update the session state if the scenario changes
 if selected_scenario != st.session_state.selected_scenario:
@@ -88,6 +94,7 @@ if audio_bytes:
         transcript = speech_to_text(webm_file_path)
         if transcript:
             st.session_state.messages.append({"role": "user", "content": transcript})
+            st.session_state.answers.append(transcript)  # Store the user's answer
             with st.chat_message("user"):
                 st.write(transcript)
             os.remove(webm_file_path)
@@ -103,6 +110,19 @@ if st.session_state.messages[-1]["role"] != "assistant":
         st.session_state.messages.append({"role": "assistant", "content": final_response})
         os.remove(audio_file)
 
+# Evaluation button
+if st.button("Evaluate Answers"):
+    if len(st.session_state.answers) >= 10:  # Ensure there are enough answers to evaluate
+        # Here you would normally have a more sophisticated evaluation
+        score = sum(1 for answer in st.session_state.answers if "correct" in answer.lower())  # Simple placeholder
+        if score / len(st.session_state.answers) >= 0.8:
+            st.session_state.current_level += 1
+            st.write(f"Congratulations! You've passed to level {st.session_state.current_level}.")
+            st.experimental_rerun()  # Reload to update locked stages
+        else:
+            st.write("You did not pass. Please try again.")
+    else:
+        st.write("Not enough answers to evaluate.")
 
 # Float the footer container and provide CSS to target it with
-footer_container.float("bottom: 2rem;")
+footer_container.float("bottom: 0rem;")
