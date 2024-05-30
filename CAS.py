@@ -68,6 +68,8 @@ def initialize_session_state():
         st.session_state.answers = []
     if "level_progress" not in st.session_state:
         st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner"}
+    if "incorrect_attempts" not in st.session_state:
+        st.session_state.incorrect_attempts = 0
 
 initialize_session_state()
 
@@ -115,6 +117,7 @@ if selected_scenario != st.session_state.selected_scenario:
     st.session_state.selected_level = "Beginner"
     st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]["Beginner"]}]
     st.session_state.answers = []
+    st.session_state.incorrect_attempts = 0
 
 system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]]
 
@@ -151,29 +154,92 @@ if st.session_state.messages[-1]["role"] != "assistant":
 # Evaluation button
 def evaluate_answers(user_answers, expected_answers):
     score = 0
+    seen_answers = set()
+
     for user_answer, expected_answer in zip(user_answers, expected_answers):
+        # Remove leading and trailing whitespaces and convert to lowercase
+        user_answer_clean = user_answer.strip().lower()
+
+        # Check for cases to exclude
+        if not user_answer_clean:  # Empty or whitespace only
+            continue
+        if user_answer_clean in seen_answers:  # Repeated answer
+            continue
+        if "explain" in user_answer_clean or "again" in user_answer_clean:  # Asking to explain again
+            continue
+        if not any(keyword in user_answer_clean for keyword in expected_answer.lower().split()):  # Non-relevant answer
+            continue
+
         # Simple keyword matching; could be improved with more sophisticated NLP techniques
-        if all(keyword.lower() in user_answer.lower() for keyword in expected_answer.split()):
+        if all(keyword.lower() in user_answer_clean for keyword in expected_answer.split()):
             score += 1
+
+        seen_answers.add(user_answer_clean)
+
     return score
+
+def handle_answer(user_answer, expected_answer):
+    # Remove leading and trailing whitespaces and convert to lowercase
+    user_answer_clean = user_answer.strip().lower()
+
+    # Check for non-answer cases
+    if not user_answer_clean or "explain" in user_answer_clean or "again" in user_answer_clean:
+        return "not an answer"
+    
+    # Simple keyword matching to check if the answer is correct
+    if all(keyword.lower() in user_answer_clean for keyword in expected_answer.split()):
+        st.session_state.incorrect_attempts = 0  # Reset incorrect attempts on correct answer
+        return "correct"
+
+    st.session_state.incorrect_attempts += 1
+    if st.session_state.incorrect_attempts == 3:
+        return "explain and move on"
+    elif st.session_state.incorrect_attempts == 2:
+        return "explain briefly"
+    else:
+        return "incorrect"
 
 if st.button("Evaluate Answers"):
     if len(st.session_state.answers) >= 10:  # Ensure there are enough answers to evaluate
         scenario_answers = expected_answers[selected_scenario][st.session_state.level_progress[selected_scenario]]
-        score = evaluate_answers(st.session_state.answers[:10], scenario_answers[:10])
-        if score / len(st.session_state.answers[:10]) >= 0.8:
-            next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
-            if next_level:
-                st.session_state.level_progress[selected_scenario] = next_level
-                st.session_state.selected_level = next_level
-                st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario][next_level]}]
-                st.session_state.answers = []
-                st.write(f"Congratulations! You've passed to the {next_level} level.")
-                st.experimental_rerun()  # Reload to update available levels
+        user_answers = st.session_state.answers[:10]
+        
+        for user_answer, expected_answer in zip(user_answers, scenario_answers):
+            result = handle_answer(user_answer, expected_answer)
+            if result == "correct":
+                st.write("Correct! Moving to the next question.")
+                st.session_state.answers.remove(user_answer)
+                break
+            elif result == "incorrect":
+                st.write("That's not quite right. Let's try again.")
+                break
+            elif result == "explain briefly":
+                st.write("That's not quite right. Here's a brief explanation: " + expected_answer)
+                break
+            elif result == "explain and move on":
+                st.write("That's not quite right. Here's a detailed explanation: " + expected_answer)
+                st.session_state.incorrect_attempts = 0  # Reset incorrect attempts
+                break
+            elif result == "not an answer":
+                st.write("Please provide a relevant answer.")
+                break
+        
+        if st.session_state.incorrect_attempts == 0 and result == "correct":
+            # Check if all answers were correct and move to next level
+            score = evaluate_answers(user_answers, scenario_answers)
+            if score / len(user_answers) >= 0.8:
+                next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
+                if next_level:
+                    st.session_state.level_progress[selected_scenario] = next_level
+                    st.session_state.selected_level = next_level
+                    st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario][next_level]}]
+                    st.session_state.answers = []
+                    st.write(f"Congratulations! You've passed to the {next_level} level.")
+                    st.experimental_rerun()  # Reload to update available levels
+                else:
+                    st.write("You have completed all levels. Congratulations!")
             else:
-                st.write("You have completed all levels. Congratulations!")
-        else:
-            st.write("You did not pass. Please try again.")
+                st.write("You did not pass. Please try again.")
     else:
         st.write("Not enough answers to evaluate.")
 
