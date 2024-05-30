@@ -3,6 +3,7 @@ import os
 from utils import get_answer, text_to_speech, autoplay_audio, speech_to_text
 from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
+from sentence_transformers import SentenceTransformer, util
 
 st.set_page_config(
     page_title="Interview Bot",
@@ -13,6 +14,9 @@ st.set_page_config(
 
 # Float feature initialization
 float_init()
+
+# Initialize the NLP model for semantic similarity
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Define interview scenarios, levels, and their respective system prompts
 scenarios = {
@@ -46,7 +50,7 @@ levels = ["Beginner", "Intermediate", "Hard"]
 # Expected answers for each scenario and level
 expected_answers = {
     "Java Interview": {
-        "Beginner": ["OOP stands for Object-Oriented Programming", "Java is a high-level programming language", "A class in Java is a blueprint for objects"],
+        "Beginner": ["Object-Oriented Programming", "high-level programming language", "class is a blueprint for objects"],
         "Intermediate": ["Inheritance allows a class to inherit methods and properties", "Polymorphism allows methods to do different things based on the object", "Encapsulation hides the internal state of an object"],
         "Hard": ["Design patterns provide solutions to common problems", "The Singleton pattern restricts instantiation of a class to one object", "Java's garbage collector manages memory"]
     },
@@ -56,6 +60,8 @@ expected_answers = {
         "Hard": ["VBA stands for Visual Basic for Applications", "Macros automate repetitive tasks", "Power Query is used for data connection and transformation"]
     }
 }
+
+MIN_QUESTIONS_REQUIRED = 5  # Set your minimum number of questions required for evaluation here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
@@ -199,10 +205,17 @@ def handle_answer(user_answer, expected_answer):
     else:
         return "incorrect"
 
+# Function to calculate semantic similarity
+def semantic_similarity(user_answer, expected_answer):
+    embeddings1 = model.encode(user_answer, convert_to_tensor=True)
+    embeddings2 = model.encode(expected_answer, convert_to_tensor=True)
+    cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
+    return cosine_scores.item()
+
 if st.button("Evaluate Answers"):
-    if len(st.session_state.answers) >= 10:  # Ensure there are enough answers to evaluate
+    if len(st.session_state.answers) >= MIN_QUESTIONS_REQUIRED:  # Ensure there are enough answers to evaluate
         scenario_answers = expected_answers[selected_scenario][st.session_state.level_progress[selected_scenario]]
-        user_answers = st.session_state.answers[:10]
+        user_answers = st.session_state.answers[:MIN_QUESTIONS_REQUIRED]
         
         for user_answer, expected_answer in zip(user_answers, scenario_answers):
             result = handle_answer(user_answer, expected_answer)
@@ -227,7 +240,7 @@ if st.button("Evaluate Answers"):
         if st.session_state.incorrect_attempts == 0 and result == "correct":
             # Check if all answers were correct and move to next level
             score = evaluate_answers(user_answers, scenario_answers)
-            if score / len(user_answers) >= 0.05:
+            if score / len(user_answers) >= 0.8:
                 next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
                 if next_level:
                     st.session_state.level_progress[selected_scenario] = next_level
@@ -241,7 +254,7 @@ if st.button("Evaluate Answers"):
             else:
                 st.write("You did not pass. Please try again.")
     else:
-        st.write("Not enough answers to evaluate.")
+        st.write(f"Not enough answers to evaluate. Please answer at least {MIN_QUESTIONS_REQUIRED} questions.")
 
 # Float the footer container and provide CSS to target it with
 footer_container.float("bottom: 0rem;")
