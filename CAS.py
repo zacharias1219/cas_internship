@@ -14,51 +14,87 @@ st.set_page_config(
 # Float feature initialization
 float_init()
 
-# Define interview scenarios and their respective system prompts
+# Define interview scenarios, levels, and their respective system prompts
 scenarios = {
-    "Java Interview": "You are an experienced interviewer conducting a comprehensive Java programming interview session with the user. Your role is to ask a variety of Java-specific interview questions, covering topics such as OOP concepts, Java syntax, Java libraries, and problem-solving using Java. After each response, you provide insightful feedback, highlighting strengths and areas for improvement. You will assess their knowledge and skills in Java programming.",
-    "Excel Interview": "You are an experienced interviewer conducting a comprehensive Excel skills interview session with the user. Your role is to ask a variety of Excel-specific interview questions, covering topics such as Excel formulas, data analysis, pivot tables, and VBA macros. After each response, you provide insightful feedback, highlighting strengths and areas for improvement. You will assess their knowledge and skills in using Excel effectively."
+    "Java Interview": {
+        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask about basic OOP concepts, Java syntax, and simple problem-solving.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask about advanced OOP concepts, Java libraries, and moderate problem-solving.",
+        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask about complex problem-solving, design patterns, and performance optimization in Java."
+    },
+    "Excel Interview": {
+        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask about basic Excel formulas, data entry, and simple data manipulation.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask about advanced Excel formulas, data analysis, and pivot tables.",
+        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask about VBA macros, complex data analysis, and automation in Excel."
+    }
 }
 
 content = {
-    "Java Interview": "Welcome to the Java interview. Let's start with your introduction.",
-    "Excel Interview": "Welcome to the Excel interview. Let's start with your introduction."
+    "Java Interview": {
+        "Beginner": "Welcome to the beginner level Java interview. Let's start with your introduction.",
+        "Intermediate": "Welcome to the intermediate level Java interview. Let's start with your introduction.",
+        "Hard": "Welcome to the hard level Java interview. Let's start with your introduction."
+    },
+    "Excel Interview": {
+        "Beginner": "Welcome to the beginner level Excel interview. Let's start with your introduction.",
+        "Intermediate": "Welcome to the intermediate level Excel interview. Let's start with your introduction.",
+        "Hard": "Welcome to the hard level Excel interview. Let's start with your introduction."
+    }
+}
+
+levels = ["Beginner", "Intermediate", "Hard"]
+
+# Expected answers for each scenario and level
+expected_answers = {
+    "Java Interview": {
+        "Beginner": ["OOP stands for Object-Oriented Programming", "Java is a high-level programming language", "A class in Java is a blueprint for objects"],
+        "Intermediate": ["Inheritance allows a class to inherit methods and properties", "Polymorphism allows methods to do different things based on the object", "Encapsulation hides the internal state of an object"],
+        "Hard": ["Design patterns provide solutions to common problems", "The Singleton pattern restricts instantiation of a class to one object", "Java's garbage collector manages memory"]
+    },
+    "Excel Interview": {
+        "Beginner": ["SUM function adds all the numbers in a range of cells", "A cell reference refers to a cell or a range of cells on a worksheet", "A pivot table summarizes data"],
+        "Intermediate": ["VLOOKUP searches for a value in the first column of a table range", "Conditional formatting changes the appearance of cells", "The IF function performs a logical test and returns one value for a TRUE result and another for a FALSE result"],
+        "Hard": ["VBA stands for Visual Basic for Applications", "Macros automate repetitive tasks", "Power Query is used for data connection and transformation"]
+    }
 }
 
 def initialize_session_state():
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": content["Java Interview"]}]
+        st.session_state.messages = [{"role": "assistant", "content": content["Java Interview"]["Beginner"]}]
     if "selected_scenario" not in st.session_state:
         st.session_state.selected_scenario = "Java Interview"
-    if "previous_scenario" not in st.session_state:
-        st.session_state.previous_scenario = "Java Interview"
+    if "selected_level" not in st.session_state:
+        st.session_state.selected_level = "Beginner"
     if "answers" not in st.session_state:
         st.session_state.answers = []
-    if "current_level" not in st.session_state:
-        st.session_state.current_level = 1
+    if "level_progress" not in st.session_state:
+        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner"}
 
 initialize_session_state()
 
 st.title("Interview Bot 🤖")
 
-# Function to lock stages
-def lock_stages(current_level):
-    locked_stages = {"Java Interview": 1, "Excel Interview": 2}  # Define the level required for each stage
-    return {stage: level <= current_level for stage, level in locked_stages.items()}
-
-locked_stages = lock_stages(st.session_state.current_level)
+# Function to determine if the next level is unlocked
+def unlock_next_level(current_level):
+    if current_level == "Beginner":
+        return "Intermediate"
+    elif current_level == "Intermediate":
+        return "Hard"
+    else:
+        return None
 
 # Use columns to place the dropdown, audio recorder, and end session button side by side
 col1, col2, col3 = st.columns([2, 1, 1])
 
 with col1:
     # Scenario selection
-    available_scenarios = [scenario for scenario, unlocked in locked_stages.items() if unlocked]
     selected_scenario = st.selectbox(
         "Choose an interview",
-        available_scenarios,
-        index=0
+        list(scenarios.keys()),
+        index=list(scenarios.keys()).index(st.session_state.selected_scenario)
     )
+
+    current_level = st.session_state.level_progress[selected_scenario]
+    st.write(f"Current level: {current_level}")
 
 with col2:
     # Create footer container for the microphone
@@ -76,9 +112,11 @@ with col3:
 # Update the session state if the scenario changes
 if selected_scenario != st.session_state.selected_scenario:
     st.session_state.selected_scenario = selected_scenario
-    st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]}]
+    st.session_state.selected_level = "Beginner"
+    st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]["Beginner"]}]
+    st.session_state.answers = []
 
-system_prompt = scenarios[selected_scenario]
+system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]]
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -111,14 +149,29 @@ if st.session_state.messages[-1]["role"] != "assistant":
         os.remove(audio_file)
 
 # Evaluation button
+def evaluate_answers(user_answers, expected_answers):
+    score = 0
+    for user_answer, expected_answer in zip(user_answers, expected_answers):
+        # Simple keyword matching; could be improved with more sophisticated NLP techniques
+        if all(keyword.lower() in user_answer.lower() for keyword in expected_answer.split()):
+            score += 1
+    return score
+
 if st.button("Evaluate Answers"):
     if len(st.session_state.answers) >= 10:  # Ensure there are enough answers to evaluate
-        # Here you would normally have a more sophisticated evaluation
-        score = sum(1 for answer in st.session_state.answers if "correct" in answer.lower())  # Simple placeholder
-        if score / len(st.session_state.answers) >= 0.8:
-            st.session_state.current_level += 1
-            st.write(f"Congratulations! You've passed to level {st.session_state.current_level}.")
-            st.experimental_rerun()  # Reload to update locked stages
+        scenario_answers = expected_answers[selected_scenario][st.session_state.level_progress[selected_scenario]]
+        score = evaluate_answers(st.session_state.answers[:10], scenario_answers[:10])
+        if score / len(st.session_state.answers[:10]) >= 0.8:
+            next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
+            if next_level:
+                st.session_state.level_progress[selected_scenario] = next_level
+                st.session_state.selected_level = next_level
+                st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario][next_level]}]
+                st.session_state.answers = []
+                st.write(f"Congratulations! You've passed to the {next_level} level.")
+                st.experimental_rerun()  # Reload to update available levels
+            else:
+                st.write("You have completed all levels. Congratulations!")
         else:
             st.write("You did not pass. Please try again.")
     else:
