@@ -61,7 +61,8 @@ expected_answers = {
     }
 }
 
-MIN_QUESTIONS_REQUIRED = 5  # Set your minimum number of questions required for evaluation here
+MIN_QUESTIONS_REQUIRED = 2  # Set your minimum number of questions required for evaluation here
+EVALUATION_THRESHOLD = 0.1  # Set the evaluation metric threshold here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
@@ -159,7 +160,7 @@ if st.session_state.messages[-1]["role"] != "assistant":
 
 # Evaluation button
 def evaluate_answers(user_answers, expected_answers):
-    score = 0
+    scores = []
     seen_answers = set()
 
     for user_answer, expected_answer in zip(user_answers, expected_answers):
@@ -176,13 +177,13 @@ def evaluate_answers(user_answers, expected_answers):
         if not any(keyword in user_answer_clean for keyword in expected_answer.lower().split()):  # Non-relevant answer
             continue
 
-        # Simple keyword matching; could be improved with more sophisticated NLP techniques
-        if all(keyword.lower() in user_answer_clean for keyword in expected_answer.split()):
-            score += 1
+        # Calculate semantic similarity
+        score = semantic_similarity(user_answer, expected_answer)
+        scores.append(score)
 
         seen_answers.add(user_answer_clean)
 
-    return score
+    return scores
 
 def handle_answer(user_answer, expected_answer):
     # Remove leading and trailing whitespaces and convert to lowercase
@@ -239,8 +240,8 @@ if st.button("Evaluate Answers"):
         
         if st.session_state.incorrect_attempts == 0 and result == "correct":
             # Check if all answers were correct and move to next level
-            score = evaluate_answers(user_answers, scenario_answers)
-            if score / len(user_answers) >= 0.8:
+            scores = evaluate_answers(user_answers, scenario_answers)
+            if all(score >= EVALUATION_THRESHOLD for score in scores):
                 next_level = unlock_next_level(st.session_state.level_progress[selected_scenario])
                 if next_level:
                     st.session_state.level_progress[selected_scenario] = next_level
