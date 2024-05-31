@@ -47,7 +47,7 @@ content = {
 
 levels = ["Beginner", "Intermediate", "Hard"]
 
-EVALUATION_THRESHOLD = 0.1  # Set the evaluation metric threshold here
+EVALUATION_THRESHOLD = 0.4  # Set the evaluation metric threshold here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
