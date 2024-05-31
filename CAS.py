@@ -47,7 +47,7 @@ content = {
 
 levels = ["Beginner", "Intermediate", "Hard"]
 
-EVALUATION_THRESHOLD = 0.4  # Set the evaluation metric threshold here
+EVALUATION_THRESHOLD = 0.1  # Set the evaluation metric threshold here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
@@ -89,8 +89,8 @@ def unlock_next_level(current_level):
     else:
         return None
 
-# Use columns to place the dropdown, audio recorder, and end session button side by side
-col1, col2, col3 = st.columns([2, 1, 1])
+# Use columns to place the dropdown, audio recorder, end session button, and slider side by side
+col1, col2, col3, col4 = st.columns([2, 1, 1, 2])
 
 with col1:
     # Scenario selection
@@ -116,13 +116,14 @@ with col3:
         initialize_session_state()
         st.experimental_rerun()
 
-# Maximum number of questions slider
-st.session_state.max_questions = st.slider(
-    "Max Questions",
-    min_value=2,
-    max_value=10,
-    value=5
-)
+with col4:
+    # Maximum number of questions slider
+    st.session_state.max_questions = st.slider(
+        "Max Questions",
+        min_value=2,
+        max_value=10,
+        value=5
+    )
 
 # Update the session state if the scenario changes
 if selected_scenario != st.session_state.selected_scenario:
