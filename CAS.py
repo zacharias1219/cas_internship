@@ -1,5 +1,7 @@
-import streamlit as st
+import json
 import os
+import random
+import streamlit as st
 from utils import get_answer, text_to_speech, autoplay_audio, speech_to_text
 from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
@@ -18,40 +20,23 @@ float_init()
 # Initialize the NLP model for semantic similarity
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Define interview scenarios, levels, and their respective system prompts
-scenarios = {
-    "Java Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask about basic OOP concepts and Java syntax. Prepare {max_questions} questions.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask about advanced OOP concepts and Java libraries. Prepare {max_questions} questions.",
-        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask about complex design patterns and performance optimization in Java. Prepare {max_questions} questions."
-    },
-    "Excel Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask about basic Excel formulas, data entry, and simple data manipulation. Prepare {max_questions} questions.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask about advanced Excel formulas, data analysis, and pivot tables. Prepare {max_questions} questions.",
-        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask about VBA macros, complex data analysis, and automation in Excel. Prepare {max_questions} questions."
-    }
-}
+# Load questions and ideal answers from the JSON file
+with open('questions.json', 'r') as file:
+    questions_data = json.load(file)
 
-content = {
-    "Java Interview": {
-        "Beginner": "Welcome to the beginner level Java interview. Let's start with your introduction.",
-        "Intermediate": "Welcome to the intermediate level Java interview.",
-        "Hard": "Welcome to the hard level Java interview."
-    },
-    "Excel Interview": {
-        "Beginner": "Welcome to the beginner level Excel interview. Let's start with your introduction.",
-        "Intermediate": "Welcome to the intermediate level Excel interview.",
-        "Hard": "Welcome to the hard level Excel interview."
-    }
-}
+# Function to get questions based on scenario and level
+def get_questions(scenario, level, max_questions):
+    questions = questions_data[scenario][level]
+    return random.sample(questions, min(max_questions, len(questions)))
 
+# Define levels
 levels = ["Beginner", "Intermediate", "Hard"]
 
-EVALUATION_THRESHOLD = 0.4  # Set the evaluation metric threshold here
+EVALUATION_THRESHOLD = 0.1  # Set the evaluation metric threshold here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": content["Java Interview"]["Beginner"]}]
+        st.session_state.messages = [{"role": "assistant", "content": "Welcome to the interview. Let's start with your introduction."}]
     if "selected_scenario" not in st.session_state:
         st.session_state.selected_scenario = "Java Interview"
     if "selected_level" not in st.session_state:
@@ -59,7 +44,7 @@ def initialize_session_state():
     if "answers" not in st.session_state:
         st.session_state.answers = []
     if "level_progress" not in st.session_state:
-        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner"}
+        st.session_state.level_progress = {scenario: "Beginner" for scenario in questions_data.keys()}
     if "incorrect_attempts" not in st.session_state:
         st.session_state.incorrect_attempts = 0
     if "max_questions" not in st.session_state:
@@ -70,6 +55,8 @@ def initialize_session_state():
         st.session_state.introduction_given = False
     if "user_introduction" not in st.session_state:
         st.session_state.user_introduction = ""
+    if "current_questions" not in st.session_state:
+        st.session_state.current_questions = []
 
 initialize_session_state()
 
@@ -96,8 +83,8 @@ with col1:
     # Scenario selection
     selected_scenario = st.selectbox(
         "Choose an interview",
-        list(scenarios.keys()),
-        index=list(scenarios.keys()).index(st.session_state.selected_scenario)
+        list(questions_data.keys()),
+        index=list(questions_data.keys()).index(st.session_state.selected_scenario)
     )
 
     current_level = st.session_state.level_progress[selected_scenario]
@@ -129,14 +116,25 @@ with col4:
 if selected_scenario != st.session_state.selected_scenario:
     st.session_state.selected_scenario = selected_scenario
     st.session_state.selected_level = "Beginner"
-    st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]["Beginner"]}]
+    st.session_state.messages = [{"role": "assistant", "content": "Welcome to the interview. Let's start with your introduction."}]
     st.session_state.answers = []
     st.session_state.incorrect_attempts = 0
     st.session_state.current_question = 0
     st.session_state.introduction_given = False
     st.session_state.user_introduction = ""
+    st.session_state.current_questions = get_questions(selected_scenario, st.session_state.selected_level, st.session_state.max_questions)
 
-system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]].format(max_questions=st.session_state.max_questions)
+# Function to get the next question
+def get_next_question():
+    if st.session_state.current_question < len(st.session_state.current_questions):
+        return st.session_state.current_questions[st.session_state.current_question]
+    else:
+        return None
+
+next_question = get_next_question()
+
+if next_question:
+    st.session_state.messages.append({"role": "assistant", "content": next_question["question"]})
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -164,7 +162,7 @@ if audio_bytes:
 if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.introduction_given:
     with st.chat_message("assistant"):
         with st.spinner("Thinking🤔..."):
-            final_response = get_answer(st.session_state.messages, system_prompt)
+            final_response = get_answer(st.session_state.messages)
         with st.spinner("Generating audio response..."):    
             audio_file = text_to_speech(final_response)
             autoplay_audio(audio_file)
@@ -257,7 +255,7 @@ def evaluate_session():
         st.write("You did not pass. Please try again from the beginner level.")
         st.session_state.level_progress[selected_scenario] = "Beginner"
         st.session_state.selected_level = "Beginner"
-        st.session_state.messages = [{"role": "assistant", "content": content[selected_scenario]["Beginner"]}]
+        st.session_state.messages = [{"role": "assistant", "content": "Welcome to the interview. Let's start with your introduction."}]
         st.session_state.answers = []
         st.session_state.incorrect_attempts = 0
         st.session_state.current_question = 0
