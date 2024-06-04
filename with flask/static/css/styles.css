@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #e0f7fa;
     margin: 0;
     padding: 0;
 }
@@ -10,14 +10,14 @@ body {
     margin: auto;
     overflow: hidden;
     padding: 20px;
-    background: #fff;
-    border-radius: 8px;
+    background: #ffffff;
+    border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: #007bff;
 }
 
 form {
@@ -32,7 +32,7 @@ form {
     border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 10px;
-    background: #fff;
+    background: #ffffff;
 }
 
 #chatbox div {
@@ -42,7 +42,7 @@ form {
 }
 
 #chatbox .user {
-    background: #e1ffc7;
+    background: #c8e6c9;
     align-self: flex-end;
 }
 
