@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Bot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Interview Bot 🤖</h1>
+        <form id="scenarioForm">
+            <label for="scenario">Choose an interview</label>
+            <select id="scenario" name="scenario">
+                {% for key in scenarios.keys() %}
+                <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </select>
+            <label for="level">Choose level</label>
+            <select id="level" name="level">
+                {% for level in levels %}
+                <option value="{{ level }}">{{ level }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Start Interview</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

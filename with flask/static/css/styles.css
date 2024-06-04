@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#chatbox {
+    height: 400px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+#chatbox div {
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+#chatbox .user {
+    background: #e1ffc7;
+    align-self: flex-end;
+}
+
+#chatbox .assistant {
+    background: #f1f0f0;
+    align-self: flex-start;
+}
+
+input[type="text"], select, button {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+button {
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+#resetButton {
+    background: #dc3545;
+    color: #fff;
+}
+
+#resetButton:hover {
+    background: #c82333;
+}
