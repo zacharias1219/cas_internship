@@ -6,3 +6,4 @@ python-dotenv
 groq
 sentence_transformers
 json
+os
