@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import random
 from utils import get_answer, text_to_speech, autoplay_audio, speech_to_text
 from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
@@ -15,20 +16,70 @@ st.set_page_config(
 # Float feature initialization
 float_init()
 
+questions_data = {
+    "Java Interview": {
+        "Beginner": [
+            "What is polymorphism in Java?",
+            "Explain the concept of inheritance in Java.",
+            "What is a constructor in Java?",
+            "What is the purpose of the 'this' keyword in Java?",
+            "How do you define a class in Java?"
+        ],
+        "Intermediate": [
+            "What is the difference between abstract class and interface?",
+            "How does garbage collection work in Java?",
+            "Explain the use of the final keyword in Java.",
+            "What are Java Generics?",
+            "What is the Collections Framework in Java?",
+            "Solve the Dutch National Flag problem."
+        ],
+        "Hard": [
+            "Explain the Singleton design pattern.",
+            "How do you optimize performance in Java applications?",
+            "What is the difference between HashMap and ConcurrentHashMap?",
+            "How does the Java Memory Model work?",
+            "What is the purpose of the volatile keyword in Java?"
+        ]
+    },
+    "Excel Interview": {
+        "Beginner": [
+            "What is the SUM function in Excel?",
+            "How do you create a chart in Excel?",
+            "What is a cell reference in Excel?",
+            "How do you sort data in Excel?",
+            "What is the difference between a row and a column in Excel?"
+        ],
+        "Intermediate": [
+            "Explain VLOOKUP in Excel.",
+            "How do you use pivot tables in Excel?",
+            "What is conditional formatting in Excel?",
+            "How do you use the IF function in Excel?",
+            "What are named ranges in Excel?"
+        ],
+        "Hard": [
+            "What are VBA macros in Excel?",
+            "How do you perform data analysis using Power Query in Excel?",
+            "Explain the use of the INDEX and MATCH functions in Excel.",
+            "How do you create dynamic dashboards in Excel?",
+            "What is the difference between Excel and Power BI?"
+        ]
+    }
+}
+
 # Initialize the NLP model for semantic similarity
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Define interview scenarios, levels, and their respective system prompts
 scenarios = {
     "Java Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask about basic OOP concepts and Java syntax. Prepare {max_questions} questions.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask about advanced OOP concepts and Java libraries. Prepare {max_questions} questions.",
-        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask about complex design patterns and performance optimization in Java. Prepare {max_questions} questions."
+        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask the following questions: {question_list} about basic OOP concepts and Java syntax. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask the following questions: {question_list} about advanced OOP concepts and Java libraries. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
+        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask the following questions: {question_list} about complex design patterns and performance optimization in Java. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question."
     },
     "Excel Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask about basic Excel formulas, data entry, and simple data manipulation. Prepare {max_questions} questions.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask about advanced Excel formulas, data analysis, and pivot tables. Prepare {max_questions} questions.",
-        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask about VBA macros, complex data analysis, and automation in Excel. Prepare {max_questions} questions."
+        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask the following questions: {question_list} about basic Excel formulas, data entry, and simple data manipulation. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask the following questions: {question_list} about advanced Excel formulas, data analysis, and pivot tables. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
+        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask the following questions: {question_list} about VBA macros, complex data analysis, and automation in Excel. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question."
     }
 }
 
@@ -47,7 +98,7 @@ content = {
 
 levels = ["Beginner", "Intermediate", "Hard"]
 
-EVALUATION_THRESHOLD = 0.4  # Set the evaluation metric threshold here
+EVALUATION_THRESHOLD = 0.6  # Set the evaluation metric threshold here
 
 def initialize_session_state():
     if "messages" not in st.session_state:
@@ -136,7 +187,12 @@ if selected_scenario != st.session_state.selected_scenario:
     st.session_state.introduction_given = False
     st.session_state.user_introduction = ""
 
-system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]].format(max_questions=st.session_state.max_questions)
+def get_random_questions(scenario, level, num_questions):
+    questions = questions_data[scenario][level]
+    selected_questions = random.sample(questions, num_questions)
+    return selected_questions
+
+system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]].format(max_questions=st.session_state.max_questions,question_list=get_random_questions(st.session_state.selected_scenario, st.session_state.selected_level, st.session_state.max_questions))
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
