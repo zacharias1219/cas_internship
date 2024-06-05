@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import random
+import json
 from utils import get_answer, text_to_speech, autoplay_audio, speech_to_text
 from audio_recorder_streamlit import audio_recorder
 from streamlit_float import *
@@ -16,55 +17,9 @@ st.set_page_config(
 # Float feature initialization
 float_init()
 
-questions_data = {
-    "Java Interview": {
-        "Beginner": [
-            "What is polymorphism in Java?",
-            "Explain the concept of inheritance in Java.",
-            "What is a constructor in Java?",
-            "What is the purpose of the 'this' keyword in Java?",
-            "How do you define a class in Java?"
-        ],
-        "Intermediate": [
-            "What is the difference between abstract class and interface?",
-            "How does garbage collection work in Java?",
-            "Explain the use of the final keyword in Java.",
-            "What are Java Generics?",
-            "What is the Collections Framework in Java?",
-            "Solve the Dutch National Flag problem."
-        ],
-        "Hard": [
-            "Explain the Singleton design pattern.",
-            "How do you optimize performance in Java applications?",
-            "What is the difference between HashMap and ConcurrentHashMap?",
-            "How does the Java Memory Model work?",
-            "What is the purpose of the volatile keyword in Java?"
-        ]
-    },
-    "Excel Interview": {
-        "Beginner": [
-            "What is the SUM function in Excel?",
-            "How do you create a chart in Excel?",
-            "What is a cell reference in Excel?",
-            "How do you sort data in Excel?",
-            "What is the difference between a row and a column in Excel?"
-        ],
-        "Intermediate": [
-            "Explain VLOOKUP in Excel.",
-            "How do you use pivot tables in Excel?",
-            "What is conditional formatting in Excel?",
-            "How do you use the IF function in Excel?",
-            "What are named ranges in Excel?"
-        ],
-        "Hard": [
-            "What are VBA macros in Excel?",
-            "How do you perform data analysis using Power Query in Excel?",
-            "Explain the use of the INDEX and MATCH functions in Excel.",
-            "How do you create dynamic dashboards in Excel?",
-            "What is the difference between Excel and Power BI?"
-        ]
-    }
-}
+# Load questions from JSON file
+with open('questions.json', 'r') as f:
+    questions_data = json.load(f)
 
 # Initialize the NLP model for semantic similarity
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -72,14 +27,19 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 # Define interview scenarios, levels, and their respective system prompts
 scenarios = {
     "Java Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask the following questions: {question_list} about basic OOP concepts and Java syntax. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask the following questions: {question_list} about advanced OOP concepts and Java libraries. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
-        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask the following questions: {question_list} about complex design patterns and performance optimization in Java. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question."
+        "Beginner": "You are an experienced interviewer conducting a beginner level Java programming interview session with the user. Ask the following questions: {question_list} about basic OOP concepts and Java syntax. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Java programming interview session with the user. Ask the following questions: {question_list} about advanced OOP concepts and Java libraries. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Hard": "You are an experienced interviewer conducting a hard level Java programming interview session with the user. Ask the following questions: {question_list} about complex design patterns and performance optimization in Java. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions."
     },
     "Excel Interview": {
-        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask the following questions: {question_list} about basic Excel formulas, data entry, and simple data manipulation. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
-        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask the following questions: {question_list} about advanced Excel formulas, data analysis, and pivot tables. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question.",
-        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask the following questions: {question_list} about VBA macros, complex data analysis, and automation in Excel. Prepare {max_questions} questions. Give small hints and follow up questions only if you weren't able move on to the next question."
+        "Beginner": "You are an experienced interviewer conducting a beginner level Excel skills interview session with the user. Ask the following questions: {question_list} about basic Excel formulas, data entry, and simple data manipulation. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Excel skills interview session with the user. Ask the following questions: {question_list} about advanced Excel formulas, data analysis, and pivot tables. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Hard": "You are an experienced interviewer conducting a hard level Excel skills interview session with the user. Ask the following questions: {question_list} about VBA macros, complex data analysis, and automation in Excel. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions."
+    },
+    "Python Interview": {
+        "Beginner": "You are an experienced interviewer conducting a beginner level Python programming interview session with the user. Ask the following questions: {question_list} about basic Python concepts and syntax. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Intermediate": "You are an experienced interviewer conducting an intermediate level Python programming interview session with the user. Ask the following questions: {question_list} about advanced Python concepts and libraries. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions.",
+        "Hard": "You are an experienced interviewer conducting a hard level Python programming interview session with the user. Ask the following questions: {question_list} about complex design patterns and performance optimization in Python. Prepare {max_questions} questions. Whenever you give hints, give extremly small hints in the form of questions."
     }
 }
 
@@ -93,6 +53,11 @@ content = {
         "Beginner": "Welcome to the beginner level Excel interview. Let's start with your introduction.",
         "Intermediate": "Welcome to the intermediate level Excel interview.",
         "Hard": "Welcome to the hard level Excel interview."
+    },
+    "Python Interview": {
+        "Beginner": "Welcome to the beginner level Python interview. Let's start with your introduction.",
+        "Intermediate": "Welcome to the intermediate level Python interview.",
+        "Hard": "Welcome to the hard level Python interview."
     }
 }
 
@@ -110,7 +75,7 @@ def initialize_session_state():
     if "answers" not in st.session_state:
         st.session_state.answers = []
     if "level_progress" not in st.session_state:
-        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner"}
+        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner", "Python Interview": "Beginner"}
     if "incorrect_attempts" not in st.session_state:
         st.session_state.incorrect_attempts = 0
     if "max_questions" not in st.session_state:
