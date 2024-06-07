@@ -18,8 +18,8 @@ st.set_page_config(
 float_init()
 
 # Load questions from JSON file
-with open('questions.json', 'r') as f:
-    questions_data = json.load(f)
+with open("questions.json", "r") as file:
+    questions_data = json.load(file)
 
 # Initialize the NLP model for semantic similarity
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -95,7 +95,7 @@ def initialize_session_state():
     if "answers" not in st.session_state:
         st.session_state.answers = []
     if "level_progress" not in st.session_state:
-        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner", "Python Interview": "Beginner"}
+        st.session_state.level_progress = {"Java Interview": "Beginner", "Excel Interview": "Beginner", "Python Interview": "Beginner", "Kotlin Interview": "Beginner", "ReactJS Interview": "Beginner"}
     if "incorrect_attempts" not in st.session_state:
         st.session_state.incorrect_attempts = 0
     if "max_questions" not in st.session_state:
@@ -177,7 +177,7 @@ def get_random_questions(scenario, level, num_questions):
     selected_questions = random.sample(questions, num_questions)
     return selected_questions
 
-system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]].format(max_questions=st.session_state.max_questions,question_list=get_random_questions(st.session_state.selected_scenario, st.session_state.selected_level, st.session_state.max_questions))
+system_prompt = scenarios[selected_scenario][st.session_state.level_progress[selected_scenario]].format(max_questions=st.session_state.max_questions, question_list=get_random_questions(st.session_state.selected_scenario, st.session_state.selected_level, st.session_state.max_questions))
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -206,7 +206,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.int
     with st.chat_message("assistant"):
         with st.spinner("Thinking🤔..."):
             final_response = get_answer(st.session_state.messages, system_prompt)
-        with st.spinner("Generating audio response..."):    
+        with st.spinner("Generating audio response..."):
             audio_file = text_to_speech(final_response)
             autoplay_audio(audio_file)
         st.write(final_response)
