@@ -1,0 +1,15 @@
+{
+    "paths": [
+      {
+        "name": "Common English Expressions",
+        "steps": [
+          {"type": "quiz", "data": {"questions": ["Question 1?", "Question 2?"]}},
+          {"type": "video", "data": {"url": "https://www.youtube.com/watch?v=example", "questions": ["What is said at 0:30?"]}},
+          {"type": "botTalk", "data": {"phrases": ["Hello!", "How are you?"]}},
+          {"type": "pronunciations", "data": {"words": ["Pronunciation 1", "Pronunciation 2"]}},
+          {"type": "speakOutLoud", "data": {"sentences": ["Speak out loud sentence 1", "Speak out loud sentence 2"]}}
+        ]
+      }
+    ]
+  }
+  
