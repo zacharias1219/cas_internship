@@ -3,38 +3,48 @@ import json
 import os
 
 # Load the question and video data from JSON files
-with open('questions.json', encoding='utf-8') as qf:
-    question_data = json.load(qf)
+def load_json(file_path):
+    with open(file_path, encoding='utf-8') as file:
+        return json.load(file)
 
-with open('videos.json', encoding='utf-8') as vf:
-    video_data = json.load(vf)
+question_data = load_json('questions.json')
+video_data = load_json('videos.json')
 
-# Function to save submissions temporarily
+# Function to load existing submissions
+def load_submissions():
+    if os.path.exists('submissions.json'):
+        with open('submissions.json', 'r', encoding='utf-8') as sf:
+            try:
+                return json.load(sf)
+            except json.JSONDecodeError:
+                return []
+    return []
+
+# Function to save submissions as a JSON array
+def save_submissions(submissions):
+    with open('submissions.json', 'w', encoding='utf-8') as sf:
+        json.dump(submissions, sf, ensure_ascii=False, indent=4)
+
+# Function to save a new submission
 def save_submission(submission):
-    with open('submissions.json', 'a', encoding='utf-8') as sf:
-        json.dump(submission, sf, ensure_ascii=False, indent=4)
-        sf.write('\n')
+    submissions = load_submissions()
+    submissions.append(submission)
+    save_submissions(submissions)
+
+# Function to delete a submission
+def delete_submission(index):
+    submissions = load_submissions()
+    if 0 <= index < len(submissions):
+        del submissions[index]
+        save_submissions(submissions)
 
 # Admin Page
 st.title("Admin Page")
 
 st.sidebar.title("Submit Content")
-path_type = st.sidebar.selectbox("Path Type", ["quiz", "video", "botTalk", "pronunciations", "speakOutLoud"])
+path_type = st.sidebar.selectbox("Path Type", ["video", "botTalk", "pronunciations", "speakOutLoud"])
 
-if path_type == "quiz":
-    question = st.sidebar.text_input("Question")
-    correct_answer = st.sidebar.text_input("Correct Answer")
-    if st.sidebar.button("Submit"):
-        submission = {
-            "type": "quiz",
-            "content": question,
-            "correct_answer": correct_answer,
-            "path": "quiz"
-        }
-        save_submission(submission)
-        st.sidebar.success("Submitted successfully!")
-
-elif path_type == "video":
+if path_type == "video":
     video_url = st.sidebar.text_input("Video URL")
     question = st.sidebar.text_input("Question")
     correct_answer = st.sidebar.text_input("Correct Answer")
@@ -90,17 +100,17 @@ elif path_type == "speakOutLoud":
         st.sidebar.success("Submitted successfully!")
 
 st.write("Submissions")
-with open('submissions.json', 'r', encoding='utf-8') as sf:
-    submissions = sf.readlines()
-    for submission in submissions:
-        st.write(json.loads(submission))
+submissions = load_submissions()
+for i, submission in enumerate(submissions):
+    st.write(submission)
+    if st.button(f"Delete {i}", key=f"delete_{i}"):
+        delete_submission(i)
+        st.experimental_rerun()
 
 # Function to verify and add submissions to the bank
 def verify_submission(submission):
     # Example criteria: Ensure all fields are filled
-    if submission['type'] == 'quiz':
-        return submission['content'] and submission['correct_answer']
-    elif submission['type'] == 'video':
+    if submission['type'] == 'video':
         return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
     elif submission['type'] == 'botTalk':
         return submission['phrases']
@@ -111,15 +121,7 @@ def verify_submission(submission):
     return False
 
 def add_to_bank(submission):
-    if submission['type'] == 'quiz':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "text",
-            "content": submission['content'],
-            "correct_answer": submission['correct_answer'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'video':
+    if submission['type'] == 'video':
         video_data['videos'].append({
             "id": len(video_data['videos']) + 1,
             "url": submission['content'],
@@ -157,18 +159,13 @@ def add_to_bank(submission):
 
 # Automated Verification and Addition
 if st.button("Verify and Add All Submissions"):
-    with open('submissions.json', 'r', encoding='utf-8') as sf:
-        submissions = sf.readlines()
-        for submission in submissions:
-            submission_data = json.loads(submission)
-            if verify_submission(submission_data):
-                add_to_bank(submission_data)
+    for submission in submissions:
+        if verify_submission(submission):
+            add_to_bank(submission)
     # Clear submissions after adding them to the bank
     open('submissions.json', 'w').close()
     st.success("All valid submissions verified and added to the bank!")
 
 st.write("Submissions to be verified")
-with open('submissions.json', 'r', encoding='utf-8') as sf:
-    submissions = sf.readlines()
-    for submission in submissions:
-        st.write(json.loads(submission))
+for submission in submissions:
+    st.write(submission)

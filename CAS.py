@@ -18,7 +18,7 @@ st.set_page_config(
 float_init()
 
 # Load questions from JSON file
-with open("questions.json", "r") as file:
+with open("koshen.json", "r", encoding="utf-8") as file:
     questions_data = json.load(file)
 
 # Initialize the NLP model for semantic similarity

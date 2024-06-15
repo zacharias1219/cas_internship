@@ -7,15 +7,16 @@ from pydub import AudioSegment
 import openai
 import tempfile
 
+# Load environment variables
 load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
-# Load the question and video data from JSON files
-with open('questions.json', encoding='utf-8') as qf:
-    question_data = json.load(qf)
+# Load the question data from JSON files
+def load_json(file_path):
+    with open(file_path, encoding='utf-8') as file:
+        return json.load(file)
 
-with open('videos.json', encoding='utf-8') as vf:
-    video_data = json.load(vf)
+question_data = load_json('questions.json')
 
 # Function to capture audio
 def capture_audio():
@@ -63,111 +64,95 @@ def validate_audio_response(correct_answer):
             st.error("Incorrect answer, please try again.")
 
 # Template functions
-def quiz_template(data):
-    st.write("Quiz")
-    for question in data['questions']:
-        st.write(question['content'])
-        user_answer = st.text_input("Your answer", key=question['id'])
-        if st.button("Submit", key=f"submit_{question['id']}"):
-            validate_text_response(user_answer, question['correct_answer'])
-        if st.button("Record", key=f"record_{question['id']}"):
-            validate_audio_response(question['correct_answer'])
-
 def video_template(data):
     st.write("Video")
     st.video(data['content'])
     for question in data['questions']:
         st.write(question['question'])
-        user_answer = st.text_input("Your answer", key=question['id'])
-        if st.button("Submit", key=f"submit_{question['id']}"):
+        user_answer = st.text_input("Your answer", key=f"{data['id']}_{question['question']}")
+        if st.button("Submit", key=f"submit_{data['id']}_{question['question']}"):
             validate_text_response(user_answer, question['correct_answer'])
-        if st.button("Record", key=f"record_{question['id']}"):
+        if st.button("Record", key=f"record_{data['id']}_{question['question']}"):
             validate_audio_response(question['correct_answer'])
 
 def bot_talk_template(data):
     st.write("Bot Talk")
     for phrase in data['phrases']:
         st.write(phrase)
-        user_answer = st.text_input("Your response", key=phrase)
-        if st.button("Submit", key=f"submit_{phrase}"):
+        user_answer = st.text_input("Your response", key=f"{data['id']}_{phrase}")
+        if st.button("Submit", key=f"submit_{data['id']}_{phrase}"):
             validate_text_response(user_answer, phrase)
-        if st.button("Record", key=f"record_{phrase}"):
+        if st.button("Record", key=f"record_{data['id']}_{phrase}"):
             validate_audio_response(phrase)
 
 def pronunciations_template(data):
     st.write("Pronunciations")
     for word in data['words']:
         st.write(word)
-        user_answer = st.text_input("Your pronunciation", key=word)
-        if st.button("Submit", key=f"submit_{word}"):
+        user_answer = st.text_input("Your pronunciation", key=f"{data['id']}_{word}")
+        if st.button("Submit", key=f"submit_{data['id']}_{word}"):
             validate_text_response(user_answer, word)
-        if st.button("Record", key=f"record_{word}"):
+        if st.button("Record", key=f"record_{data['id']}_{word}"):
             validate_audio_response(word)
 
 def speak_out_loud_template(data):
     st.write("Speak Out Loud")
     for sentence in data['sentences']:
         st.write(sentence)
-        user_answer = st.text_input("Your speech", key=sentence)
-        if st.button("Submit", key=f"submit_{sentence}"):
+        user_answer = st.text_input("Your speech", key=f"{data['id']}_{sentence}")
+        if st.button("Submit", key=f"submit_{data['id']}_{sentence}"):
             validate_text_response(user_answer, sentence)
-        if st.button("Record", key=f"record_{sentence}"):
+        if st.button("Record", key=f"record_{data['id']}_{sentence}"):
             validate_audio_response(sentence)
+
+# Function to select one random question from each path type
+def select_random_questions():
+    path_types = ['video', 'botTalk', 'pronunciations', 'speakOutLoud']
+    selected_questions = []
+
+    for path_type in path_types:
+        filtered_questions = [q for q in question_data['questions'] if q['path'] == path_type]
+        if filtered_questions:
+            selected_questions.append(random.choice(filtered_questions))
+
+    random.shuffle(selected_questions)
+    return selected_questions
 
 # Initialize session state
 def initialize_session_state():
     if 'current_section' not in st.session_state:
         st.session_state.current_section = 0
     if 'current_path' not in st.session_state:
-        st.session_state.current_path = get_new_path()
+        st.session_state.current_path = select_random_questions()
     if 'current_step' not in st.session_state:
         st.session_state.current_step = 0
 
 initialize_session_state()
 
-def select_random_path():
-    paths = ['quiz', 'video', 'botTalk', 'pronunciations', 'speakOutLoud']
-    return random.choice(paths)
-
-def select_random_questions(path_type, num_questions=5):
-    filtered_questions = [q for q in question_data['questions'] if q['path'] == path_type]
-    return random.sample(filtered_questions, min(len(filtered_questions), num_questions))
-
-def get_new_path():
-    path_type = select_random_path()
-    questions = select_random_questions(path_type)
-    return {
-        'path_type': path_type,
-        'questions': questions
-    }
-
 def next_step():
     st.session_state.current_step += 1
-    if st.session_state.current_step >= len(st.session_state.current_path['questions']):
+    if st.session_state.current_step >= len(st.session_state.current_path):
         st.session_state.current_section += 1
         st.session_state.current_step = 0
         if st.session_state.current_section < 12:
-            st.session_state.current_path = get_new_path()
+            st.session_state.current_path = select_random_questions()
 
 def render_step(step):
     step_type = step['type']
-    step_data = step['data']
-    if step_type == 'quiz':
-        quiz_template(step_data)
-    elif step_type == 'video':
-        video_template(step_data)
+    if step_type == 'video':
+        video_template(step)
     elif step_type == 'botTalk':
-        bot_talk_template(step_data)
+        bot_talk_template(step)
     elif step_type == 'pronunciations':
-        pronunciations_template(step_data)
+        pronunciations_template(step)
     elif step_type == 'speakOutLoud':
-        speak_out_loud_template(step_data)
+        speak_out_loud_template(step)
 
 st.title("Interactive Learning Path")
 
 current_path = st.session_state.current_path
 current_step_index = st.session_state.current_step
-steps = current_path['questions']
+steps = current_path
 
 if current_step_index < len(steps):
     step = steps[current_step_index]
