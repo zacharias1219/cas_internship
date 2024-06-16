@@ -20,6 +20,7 @@ def get_submissions():
     try:
         response = requests.get(f"{API_URL}/submissions")
         response.raise_for_status()
+        st.write("API Response Content:", response.content)  # Debug statement
         return response.json()
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching submissions: {e}")
