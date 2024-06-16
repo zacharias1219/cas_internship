@@ -2,9 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Initialize data
 if not os.path.exists('submissions.json'):
@@ -34,6 +38,7 @@ def get_submissions():
             return jsonify({"error": "Submissions file not found"}), 404
         return jsonify(submissions)
     except Exception as e:
+        app.logger.error(f"Error fetching submissions: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/submissions', methods=['POST'])
@@ -47,6 +52,7 @@ def add_submission():
         save_json('submissions.json', submissions)
         return jsonify(submission), 201
     except Exception as e:
+        app.logger.error(f"Error adding submission: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/submissions/<int:index>', methods=['DELETE'])
@@ -61,53 +67,60 @@ def delete_submission(index):
             return jsonify(deleted_submission), 200
         return jsonify({'error': 'Index out of range'}), 404
     except Exception as e:
+        app.logger.error(f"Error deleting submission: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/questions', methods=['GET', 'POST'])
-def questions():
+@app.route('/questions', methods=['POST'])
+def add_to_bank():
     try:
-        if request.method == 'POST':
-            submission = request.json
-            question_data = load_json('questions.json')
-            if question_data is None:
-                return jsonify({"error": "Questions file not found"}), 404
-            if submission['type'] == 'video':
-                question_data['questions'].append({
-                    "id": len(question_data['questions']) + 1,
-                    "type": "video",
-                    "content": submission['content'],
-                    "questions": submission['questions'],
-                    "path": submission['path']
-                })
-            elif submission['type'] == 'botTalk':
-                question_data['questions'].append({
-                    "id": len(question_data['questions']) + 1,
-                    "type": "botTalk",
-                    "phrases": submission['phrases'],
-                    "path": submission['path']
-                })
-            elif submission['type'] == 'pronunciations':
-                question_data['questions'].append({
-                    "id": len(question_data['questions']) + 1,
-                    "type": "pronunciations",
-                    "words": submission['words'],
-                    "path": submission['path']
-                })
-            elif submission['type'] == 'speakOutLoud':
-                question_data['questions'].append({
-                    "id": len(question_data['questions']) + 1,
-                    "type": "speakOutLoud",
-                    "sentences": submission['sentences'],
-                    "path": submission['path']
-                })
-            save_json('questions.json', question_data)
-            return jsonify(submission), 201
-        elif request.method == 'GET':
-            questions = load_json('questions.json')
-            if questions is None:
-                return jsonify({"error": "Questions file not found"}), 404
-            return jsonify(questions)
+        submission = request.json
+        question_data = load_json('questions.json')
+        if question_data is None:
+            return jsonify({"error": "Questions file not found"}), 404
+        if submission['type'] == 'video':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "video",
+                "content": submission['content'],
+                "questions": submission['questions'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'botTalk':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "botTalk",
+                "phrases": submission['phrases'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'pronunciations':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "pronunciations",
+                "words": submission['words'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'speakOutLoud':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "speakOutLoud",
+                "sentences": submission['sentences'],
+                "path": submission['path']
+            })
+        save_json('questions.json', question_data)
+        return jsonify(submission), 201
     except Exception as e:
+        app.logger.error(f"Error adding to bank: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/questions', methods=['GET'])
+def get_questions():
+    try:
+        questions = load_json('questions.json')
+        if questions is None:
+            return jsonify({"error": "Questions file not found"}), 404
+        return jsonify(questions)
+    except Exception as e:
+        app.logger.error(f"Error fetching questions: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
