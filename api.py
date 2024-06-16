@@ -17,8 +17,10 @@ if not os.path.exists('questions.json'):
 
 # Load data from JSON files
 def load_json(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return json.load(file)
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    return None
 
 def save_json(file_path, data):
     with open(file_path, 'w', encoding='utf-8') as file:
@@ -28,6 +30,8 @@ def save_json(file_path, data):
 def get_submissions():
     try:
         submissions = load_json('submissions.json')
+        if submissions is None:
+            return jsonify({"error": "Submissions file not found"}), 404
         return jsonify(submissions)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -37,6 +41,8 @@ def add_submission():
     try:
         submission = request.json
         submissions = load_json('submissions.json')
+        if submissions is None:
+            return jsonify({"error": "Submissions file not found"}), 404
         submissions.append(submission)
         save_json('submissions.json', submissions)
         return jsonify(submission), 201
@@ -47,6 +53,8 @@ def add_submission():
 def delete_submission(index):
     try:
         submissions = load_json('submissions.json')
+        if submissions is None:
+            return jsonify({"error": "Submissions file not found"}), 404
         if 0 <= index < len(submissions):
             deleted_submission = submissions.pop(index)
             save_json('submissions.json', submissions)
@@ -55,11 +63,23 @@ def delete_submission(index):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/questions', methods=['GET'])
+def get_questions():
+    try:
+        questions = load_json('questions.json')
+        if questions is None:
+            return jsonify({"error": "Questions file not found"}), 404
+        return jsonify(questions)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/questions', methods=['POST'])
 def add_to_bank():
     try:
         submission = request.json
         question_data = load_json('questions.json')
+        if question_data is None:
+            return jsonify({"error": "Questions file not found"}), 404
         if submission['type'] == 'video':
             question_data['questions'].append({
                 "id": len(question_data['questions']) + 1,
