@@ -1,23 +1,26 @@
-import re
-import os
-import base64
-from dotenv import load_dotenv
 from openai import OpenAI
+import os
+from groq import Groq
+from dotenv import load_dotenv
+import base64
 import streamlit as st
-
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=api_key)
 
-def normalize_text(text):
-    """Normalize text for comparison."""
-    text = text.lower().strip()
-    text = re.sub(r'[^\w\s]', '', text)
-    return text
+groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def get_answer(messages, system_prompt):
+    system_message = [{"role": "system", "content": system_prompt}]
+    messages = system_message + messages
+    response = groq.chat.completions.create(
+        model="LLaMA3-70b-8192",
+        messages=messages
+    )
+    return response.choices[0].message.content
 
 def speech_to_text(audio_data):
-    """Convert speech to text using Whisper API."""
     with open(audio_data, "rb") as audio_file:
         transcript = client.audio.transcriptions.create(
             model="whisper-1",
@@ -27,7 +30,6 @@ def speech_to_text(audio_data):
     return transcript
 
 def text_to_speech(input_text):
-    """Convert text to speech using OpenAI API."""
     response = client.audio.speech.create(
         model="tts-1",
         voice="nova",
@@ -39,7 +41,6 @@ def text_to_speech(input_text):
     return webm_file_path
 
 def autoplay_audio(file_path: str):
-    """Autoplay audio in Streamlit."""
     with open(file_path, "rb") as f:
         data = f.read()
     b64 = base64.b64encode(data).decode("utf-8")
