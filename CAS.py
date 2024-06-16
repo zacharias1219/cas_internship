@@ -150,7 +150,7 @@ with col3:
     if st.button("End Session"):
         st.session_state.clear()
         initialize_session_state()
-        st.experimental_rerun()
+        st.rerun()
 
 with col4:
     # Maximum number of questions slider
@@ -291,7 +291,7 @@ def evaluate_session():
             st.session_state.answers = [st.session_state.user_introduction]
             st.session_state.incorrect_attempts = 0
             st.session_state.current_question = 0
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.write("You have completed all levels. Congratulations!")
     else:
