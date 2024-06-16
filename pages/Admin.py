@@ -157,7 +157,6 @@ def add_to_bank(submission):
             "path": submission['path']
         })
 
-    # Save the updated data back to the JSON file
     with open('questions.json', 'w', encoding='utf-8') as qf:
         json.dump(question_data, qf, ensure_ascii=False, indent=4)
 
@@ -166,7 +165,6 @@ if st.button("Verify and Add All Submissions"):
     for submission in submissions:
         if verify_submission(submission):
             add_to_bank(submission)
-    # Clear submissions after adding them to the bank
     open('submissions.json', 'w').close()
     st.success("All valid submissions verified and added to the bank!")
 
