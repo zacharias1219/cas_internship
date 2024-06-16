@@ -127,11 +127,13 @@ def initialize_session_state():
         st.session_state.current_path = select_random_questions()
     if 'current_step' not in st.session_state:
         st.session_state.current_step = 0
+    if 'next_clicked' not in st.session_state:
+        st.session_state.next_clicked = False
 
 initialize_session_state()
 
 def next_step():
-    st.text("Next step")
+    st.session_state.next_clicked = True
     st.session_state.current_step += 1
     if st.session_state.current_step >= len(st.session_state.current_path):
         st.session_state.current_section += 1
@@ -177,6 +179,7 @@ else:
 # Always display the Next button
 if st.button("Next"):
     next_step()
+    st.rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
