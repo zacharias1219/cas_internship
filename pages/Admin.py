@@ -1,11 +1,12 @@
 import streamlit as st
 import json
 import requests
+import os
 
 # Define the API URL
 API_URL = "http://127.0.0.1:5000"
 
-# Function to load question data from API
+# Function to load question data from the API
 def load_question_data():
     try:
         response = requests.get(f"{API_URL}/questions")
@@ -33,7 +34,6 @@ def save_submission(submission):
     try:
         response = requests.post(f"{API_URL}/submissions", json=submission)
         response.raise_for_status()
-        st.success("Submitted successfully!")
     except requests.exceptions.RequestException as e:
         st.error(f"Error saving submission: {e}")
 
@@ -42,7 +42,6 @@ def delete_submission(index):
     try:
         response = requests.delete(f"{API_URL}/submissions/{index}")
         response.raise_for_status()
-        st.success("Deleted successfully!")
     except requests.exceptions.RequestException as e:
         st.error(f"Error deleting submission: {e}")
 
@@ -69,6 +68,7 @@ if path_type == "video":
             "path": "video"
         }
         save_submission(submission)
+        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "botTalk":
     phrases = st.sidebar.text_area("Phrases (comma separated)")
@@ -80,6 +80,7 @@ elif path_type == "botTalk":
             "path": "botTalk"
         }
         save_submission(submission)
+        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "pronunciations":
     words = st.sidebar.text_area("Words (comma separated)")
@@ -91,6 +92,7 @@ elif path_type == "pronunciations":
             "path": "pronunciations"
         }
         save_submission(submission)
+        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "speakOutLoud":
     sentences = st.sidebar.text_area("Sentences (comma separated)")
@@ -102,6 +104,7 @@ elif path_type == "speakOutLoud":
             "path": "speakOutLoud"
         }
         save_submission(submission)
+        st.sidebar.success("Submitted successfully!")
 
 st.write("Submissions")
 submissions = get_submissions()
@@ -113,7 +116,6 @@ for i, submission in enumerate(submissions):
 
 # Function to verify and add submissions to the bank
 def verify_submission(submission):
-    # Example criteria: Ensure all fields are filled
     if submission['type'] == 'video':
         return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
     elif submission['type'] == 'botTalk':
