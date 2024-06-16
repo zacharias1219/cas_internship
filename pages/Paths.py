@@ -35,8 +35,12 @@ def normalize_text(text):
 def is_similar(text1, text2, threshold=90):
     return fuzz.ratio(text1, text2) >= threshold
 
+# Function to check if a phrase is contained within the response
+def contains_phrase(response, phrase):
+    return phrase.lower() in response.lower()
+
 # Function to handle audio response
-def handle_audio_response(prompt, correct_answer, key):
+def handle_audio_response(prompt, correct_answer, key, check_partial=False):
     audio_data = audio_recorder(f"Record your response:", key=key)
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
@@ -47,26 +51,42 @@ def handle_audio_response(prompt, correct_answer, key):
         normalized_transcription = normalize_text(transcription)
         normalized_correct_answer = normalize_text(correct_answer)
 
-        if is_similar(normalized_transcription, normalized_correct_answer):
-            st.success("Correct answer!")
-            st.session_state[f"audio_correct_{key}"] = True
+        if check_partial:
+            if contains_phrase(normalized_transcription, normalized_correct_answer):
+                st.success("Correct answer!")
+                st.session_state[f"audio_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"audio_correct_{key}"] = False
         else:
-            st.error("Incorrect answer, please try again.")
-            st.session_state[f"audio_correct_{key}"] = False
+            if is_similar(normalized_transcription, normalized_correct_answer):
+                st.success("Correct answer!")
+                st.session_state[f"audio_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
-def handle_text_response(prompt, correct_answer, key):
-    user_response = st.text_input(f"Your answer should be {prompt}", key=key)
+def handle_text_response(prompt, correct_answer, key, check_partial=False):
+    user_response = st.text_input("Your answer", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_response = normalize_text(user_response)
         normalized_correct_answer = normalize_text(correct_answer)
 
-        if is_similar(normalized_user_response, normalized_correct_answer):
-            st.success("Correct answer!")
-            st.session_state[f"text_correct_{key}"] = True
+        if check_partial:
+            if contains_phrase(normalized_user_response, normalized_correct_answer):
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
         else:
-            st.error("Incorrect answer, please try again.")
-            st.session_state[f"text_correct_{key}"] = False
+            if is_similar(normalized_user_response, normalized_correct_answer):
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
 def video_template(data):
@@ -81,16 +101,17 @@ def bot_talk_template(data):
     st.write("Bot Talk")
     responses = {
         "Hello! How are you?": "I'm doing well.",
-        "What is your name?": "My name is [your name].",
+        "What is your name?": "My name is",
         "Good morning!": "Good morning!",
-        "Where are you from?": "I am from [your location]."
+        "Where are you from?": "I am from"
     }
     for i, phrase in enumerate(data['phrases']):
         st.write(phrase)
         hint = responses[phrase]
         st.write(f"Say: {hint}")
-        handle_audio_response(phrase, hint, key=f"botTalk_audio_{data['id']}_{i}")
-        handle_text_response(phrase, hint, key=f"botTalk_text_{data['id']}_{i}")
+        check_partial = phrase in ["What is your name?", "Where are you from?"]
+        handle_audio_response(phrase, hint, key=f"botTalk_audio_{data['id']}_{i}", check_partial=check_partial)
+        handle_text_response(phrase, hint, key=f"botTalk_text_{data['id']}_{i}", check_partial=check_partial)
 
 def pronunciations_template(data):
     st.write("Pronunciations")
@@ -179,7 +200,7 @@ else:
 # Always display the Next button
 if st.button("Next"):
     next_step()
-    st.rerun()
+    st.experimental_rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
