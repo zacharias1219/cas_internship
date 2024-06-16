@@ -26,61 +26,73 @@ def save_json(file_path, data):
 
 @app.route('/submissions', methods=['GET'])
 def get_submissions():
-    submissions = load_json('submissions.json')
-    return jsonify(submissions)
+    try:
+        submissions = load_json('submissions.json')
+        return jsonify(submissions)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/submissions', methods=['POST'])
 def add_submission():
-    submission = request.json
-    submissions = load_json('submissions.json')
-    submissions.append(submission)
-    save_json('submissions.json', submissions)
-    return jsonify(submission), 201
+    try:
+        submission = request.json
+        submissions = load_json('submissions.json')
+        submissions.append(submission)
+        save_json('submissions.json', submissions)
+        return jsonify(submission), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/submissions/<int:index>', methods=['DELETE'])
 def delete_submission(index):
-    submissions = load_json('submissions.json')
-    if 0 <= index < len(submissions):
-        deleted_submission = submissions.pop(index)
-        save_json('submissions.json', submissions)
-        return jsonify(deleted_submission), 200
-    return jsonify({'error': 'Index out of range'}), 404
+    try:
+        submissions = load_json('submissions.json')
+        if 0 <= index < len(submissions):
+            deleted_submission = submissions.pop(index)
+            save_json('submissions.json', submissions)
+            return jsonify(deleted_submission), 200
+        return jsonify({'error': 'Index out of range'}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/questions', methods=['POST'])
 def add_to_bank():
-    submission = request.json
-    question_data = load_json('questions.json')
-    if submission['type'] == 'video':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "video",
-            "content": submission['content'],
-            "questions": submission['questions'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'botTalk':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "botTalk",
-            "phrases": submission['phrases'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'pronunciations':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "pronunciations",
-            "words": submission['words'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'speakOutLoud':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "speakOutLoud",
-            "sentences": submission['sentences'],
-            "path": submission['path']
-        })
-    save_json('questions.json', question_data)
-    return jsonify(submission), 201
+    try:
+        submission = request.json
+        question_data = load_json('questions.json')
+        if submission['type'] == 'video':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "video",
+                "content": submission['content'],
+                "questions": submission['questions'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'botTalk':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "botTalk",
+                "phrases": submission['phrases'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'pronunciations':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "pronunciations",
+                "words": submission['words'],
+                "path": submission['path']
+            })
+        elif submission['type'] == 'speakOutLoud':
+            question_data['questions'].append({
+                "id": len(question_data['questions']) + 1,
+                "type": "speakOutLoud",
+                "sentences": submission['sentences'],
+                "path": submission['path']
+            })
+        save_json('questions.json', question_data)
+        return jsonify(submission), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
