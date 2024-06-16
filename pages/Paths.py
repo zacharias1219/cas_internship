@@ -63,7 +63,7 @@ def handle_text_response(question, correct_answer):
 # Function to render each step based on its type
 def render_step(step):
     step_type = step['type']
-    step_data = step['data']
+    step_data = step
 
     if step_type == 'speakOutLoud':
         st.write("Speak Out Loud")
@@ -100,7 +100,7 @@ current_step_index = st.session_state.current_step
 # Get the total number of questions in the current step
 def count_total_questions():
     current_step = question_data['questions'][current_step_index]
-    return len(current_step['data'].get('sentences', [])) + len(current_step['data'].get('phrases', [])) + len(current_step['data'].get('words', []))
+    return len(current_step.get('sentences', [])) + len(current_step.get('phrases', [])) + len(current_step.get('words', []))
 
 if 'total_questions' not in st.session_state or st.session_state.total_questions == 0:
     st.session_state.total_questions = count_total_questions()
