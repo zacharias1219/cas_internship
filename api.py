@@ -63,54 +63,50 @@ def delete_submission(index):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/questions', methods=['GET'])
-def get_questions():
+@app.route('/questions', methods=['GET', 'POST'])
+def questions():
     try:
-        questions = load_json('questions.json')
-        if questions is None:
-            return jsonify({"error": "Questions file not found"}), 404
-        return jsonify(questions)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/questions', methods=['POST'])
-def add_to_bank():
-    try:
-        submission = request.json
-        question_data = load_json('questions.json')
-        if question_data is None:
-            return jsonify({"error": "Questions file not found"}), 404
-        if submission['type'] == 'video':
-            question_data['questions'].append({
-                "id": len(question_data['questions']) + 1,
-                "type": "video",
-                "content": submission['content'],
-                "questions": submission['questions'],
-                "path": submission['path']
-            })
-        elif submission['type'] == 'botTalk':
-            question_data['questions'].append({
-                "id": len(question_data['questions']) + 1,
-                "type": "botTalk",
-                "phrases": submission['phrases'],
-                "path": submission['path']
-            })
-        elif submission['type'] == 'pronunciations':
-            question_data['questions'].append({
-                "id": len(question_data['questions']) + 1,
-                "type": "pronunciations",
-                "words": submission['words'],
-                "path": submission['path']
-            })
-        elif submission['type'] == 'speakOutLoud':
-            question_data['questions'].append({
-                "id": len(question_data['questions']) + 1,
-                "type": "speakOutLoud",
-                "sentences": submission['sentences'],
-                "path": submission['path']
-            })
-        save_json('questions.json', question_data)
-        return jsonify(submission), 201
+        if request.method == 'POST':
+            submission = request.json
+            question_data = load_json('questions.json')
+            if question_data is None:
+                return jsonify({"error": "Questions file not found"}), 404
+            if submission['type'] == 'video':
+                question_data['questions'].append({
+                    "id": len(question_data['questions']) + 1,
+                    "type": "video",
+                    "content": submission['content'],
+                    "questions": submission['questions'],
+                    "path": submission['path']
+                })
+            elif submission['type'] == 'botTalk':
+                question_data['questions'].append({
+                    "id": len(question_data['questions']) + 1,
+                    "type": "botTalk",
+                    "phrases": submission['phrases'],
+                    "path": submission['path']
+                })
+            elif submission['type'] == 'pronunciations':
+                question_data['questions'].append({
+                    "id": len(question_data['questions']) + 1,
+                    "type": "pronunciations",
+                    "words": submission['words'],
+                    "path": submission['path']
+                })
+            elif submission['type'] == 'speakOutLoud':
+                question_data['questions'].append({
+                    "id": len(question_data['questions']) + 1,
+                    "type": "speakOutLoud",
+                    "sentences": submission['sentences'],
+                    "path": submission['path']
+                })
+            save_json('questions.json', question_data)
+            return jsonify(submission), 201
+        elif request.method == 'GET':
+            questions = load_json('questions.json')
+            if questions is None:
+                return jsonify({"error": "Questions file not found"}), 404
+            return jsonify(questions)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

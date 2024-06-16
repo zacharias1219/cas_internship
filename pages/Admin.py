@@ -1,12 +1,11 @@
 import streamlit as st
 import json
 import requests
-import os
 
 # Define the API URL
 API_URL = "http://127.0.0.1:5000"
 
-# Function to load question data from JSON file
+# Function to load question data from API
 def load_question_data():
     try:
         response = requests.get(f"{API_URL}/questions")
