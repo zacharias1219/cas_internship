@@ -24,8 +24,7 @@ def load_json(file_path):
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON from {file_path}: {e}")
                 return None
-    else:
-        return None
+    return None
 
 def save_json(file_path, data):
     with open(file_path, 'w', encoding='utf-8') as file:
