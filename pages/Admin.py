@@ -1,45 +1,85 @@
 import streamlit as st
 import json
-import requests
+import os
 
-# Define the API URL
-API_URL = "http://127.0.0.1:5000"
+# Load the submission data from JSON file
+def load_submissions():
+    if os.path.exists('submissions.json'):
+        with open('submissions.json', 'r', encoding='utf-8') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return []
+    return []
 
-# Function to load question data from the API
-def load_question_data():
-    try:
-        response = requests.get(f"{API_URL}/questions")
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching questions: {e}")
-        return {"questions": []}
+# Save submissions to JSON file
+def save_submissions(submissions):
+    with open('submissions.json', 'w', encoding='utf-8') as file:
+        json.dump(submissions, file, ensure_ascii=False, indent=4)
 
-# Function to load existing submissions from the API
-def get_submissions():
-    try:
-        response = requests.get(f"{API_URL}/submissions")
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching submissions: {e}")
-        return []
+# Load existing submissions
+submissions = load_submissions()
 
-# Function to save a new submission to the API
-def save_submission(submission):
-    try:
-        response = requests.post(f"{API_URL}/submissions", json=submission)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error saving submission: {e}")
+# Function to verify a submission
+def verify_submission(submission):
+    if submission['type'] == 'video':
+        return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
+    elif submission['type'] == 'botTalk':
+        return submission['phrases']
+    elif submission['type'] == 'pronunciations':
+        return submission['words']
+    elif submission['type'] == 'speakOutLoud':
+        return submission['sentences']
+    return False
 
-# Function to delete a submission from the API
-def delete_submission(index):
-    try:
-        response = requests.delete(f"{API_URL}/submissions/{index}")
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error deleting submission: {e}")
+# Function to load question data from JSON file
+def load_questions():
+    if os.path.exists('questions.json'):
+        with open('questions.json', 'r', encoding='utf-8') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return {"questions": []}
+    return {"questions": []}
+
+# Save questions to JSON file
+def save_questions(questions):
+    with open('questions.json', 'w', encoding='utf-8') as file:
+        json.dump(questions, file, ensure_ascii=False, indent=4)
+
+# Add submission to the questions bank
+def add_to_bank(submission):
+    questions = load_questions()
+    if submission['type'] == 'video':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "video",
+            "content": submission['content'],
+            "questions": submission['questions'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'botTalk':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "botTalk",
+            "phrases": submission['phrases'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'pronunciations':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "pronunciations",
+            "words": submission['words'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'speakOutLoud':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "speakOutLoud",
+            "sentences": submission['sentences'],
+            "path": submission['path']
+        })
+    save_questions(questions)
 
 # Admin Page
 st.title("Admin Page")
@@ -63,11 +103,12 @@ if path_type == "video":
             ],
             "path": "video"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "botTalk":
-    phrases = st.sidebar.text_area("Phrases (comma separated)")
+    phrases = st.sidebar.text_area("Phrases (comma separated) (Only Two)")
     if st.sidebar.button("Submit"):
         phrases_list = [phrase.strip() for phrase in phrases.split(',')]
         submission = {
@@ -75,11 +116,12 @@ elif path_type == "botTalk":
             "phrases": phrases_list,
             "path": "botTalk"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "pronunciations":
-    words = st.sidebar.text_area("Words (comma separated)")
+    words = st.sidebar.text_area("Words (comma separated) (Only Two)")
     if st.sidebar.button("Submit"):
         words_list = [word.strip() for word in words.split(',')]
         submission = {
@@ -87,11 +129,12 @@ elif path_type == "pronunciations":
             "words": words_list,
             "path": "pronunciations"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "speakOutLoud":
-    sentences = st.sidebar.text_area("Sentences (comma separated)")
+    sentences = st.sidebar.text_area("Sentences (comma separated) (Only Two)")
     if st.sidebar.button("Submit"):
         sentences_list = [sentence.strip() for sentence in sentences.split(',')]
         submission = {
@@ -99,83 +142,28 @@ elif path_type == "speakOutLoud":
             "sentences": sentences_list,
             "path": "speakOutLoud"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 st.write("Submissions")
-submissions = get_submissions()
 for i, submission in enumerate(submissions):
     st.write(submission)
     if st.button(f"Delete {i}", key=f"delete_{i}"):
-        delete_submission(i)
+        del submissions[i]
+        save_submissions(submissions)
         st.experimental_rerun()
 
-# Function to verify and add submissions to the bank
-def verify_submission(submission):
-    if submission['type'] == 'video':
-        return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
-    elif submission['type'] == 'botTalk':
-        return submission['phrases']
-    elif submission['type'] == 'pronunciations':
-        return submission['words']
-    elif submission['type'] == 'speakOutLoud':
-        return submission['sentences']
-    return False
-
-def add_to_bank(submission):
-    question_data = load_question_data()
-    if submission['type'] == 'video':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "video",
-            "content": submission['content'],
-            "questions": submission['questions'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'botTalk':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "botTalk",
-            "phrases": submission['phrases'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'pronunciations':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "pronunciations",
-            "words": submission['words'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'speakOutLoud':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "speakOutLoud",
-            "sentences": submission['sentences'],
-            "path": submission['path']
-        })
-
-    with open('questions.json', 'w', encoding='utf-8') as qf:
-        json.dump(question_data, qf, ensure_ascii=False, indent=4)
-
 # Automated Verification and Addition
-if st.button("Verify and Add All Submissions"):
-    for submission in submissions:
-        if verify_submission(submission):
-            add_to_bank(submission)
-    open('submissions.json', 'w').close()
+if st.button("Verify and Add All Valid Submissions"):
+    valid_submissions = [sub for sub in submissions if verify_submission(sub)]
+    for submission in valid_submissions:
+        add_to_bank(submission)
     st.success("All valid submissions verified and added to the bank!")
+    submissions = [sub for sub in submissions if not verify_submission(sub)]
+    save_submissions(submissions)
+    st.experimental_rerun()
 
 st.write("Submissions to be verified")
 for submission in submissions:
     st.write(submission)
-
-# Function to view questions
-def view_questions():
-    questions = load_question_data()
-    st.write("Questions")
-    for question in questions['questions']:
-        st.write(question)
-
-# View questions button
-if st.button("View Questions"):
-    view_questions()
