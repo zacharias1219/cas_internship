@@ -2,14 +2,19 @@ import streamlit as st
 import json
 import random
 import os
-from dotenv import load_dotenv
-from pydub import AudioSegment
-import openai
 import tempfile
+import string
+from dotenv import load_dotenv
+from audio_recorder_streamlit import audio_recorder
+from utils import speech_to_text
+from streamlit_float import float_init
+from fuzzywuzzy import fuzz
 
 # Load environment variables
 load_dotenv()
-openai_api_key = os.getenv('OPENAI_API_KEY')
+
+# Float feature initialization
+float_init()
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -18,92 +23,80 @@ def load_json(file_path):
 
 question_data = load_json('questions.json')
 
-# Function to capture audio
-def capture_audio():
-    audio_data = st.audio("Record your response", format="audio/wav")
-    return audio_data
+# Helper function to normalize text by removing punctuation and extra whitespace
+def normalize_text(text):
+    translator = str.maketrans('', '', string.punctuation)
+    normalized = ' '.join(text.lower().translate(translator).split())
+    return normalized
 
-# Function to transcribe audio using OpenAI's Whisper
-def transcribe_audio(audio_data):
-    openai.api_key = openai_api_key
-    audio_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-    audio_file.write(audio_data.getbuffer())
-    audio_file.close()
-    
-    response = openai.Audio.transcribe(file=openai.AudioFile(audio_file.name))
-    return response['text']
+# Function to check similarity
+def is_similar(text1, text2, threshold=90):
+    return fuzz.ratio(text1, text2) >= threshold
 
 # Function to handle audio response
-def handle_audio_response(correct_answer):
-    audio_data = capture_audio()
+def handle_audio_response(correct_answer, key):
+    audio_data = audio_recorder("Record your response", key=key)
     if audio_data:
-        transcription = transcribe_audio(audio_data)
-        if transcription.lower().strip() == correct_answer.lower().strip():
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+        
+        transcription = speech_to_text(audio_file_path)
+        st.write(f"Transcription: {transcription}")
+
+        normalized_transcription = normalize_text(transcription)
+        normalized_correct_answer = normalize_text(correct_answer)
+
+        if is_similar(normalized_transcription, normalized_correct_answer):
             st.success("Correct answer!")
-            next_step()
+            st.session_state[f"audio_correct_{key}"] = True
         else:
             st.error("Incorrect answer, please try again.")
+            st.session_state[f"audio_correct_{key}"] = False
 
-# Function to validate text response
-def validate_text_response(user_answer, correct_answer):
-    if user_answer.lower().strip() == correct_answer.lower().strip():
-        st.success("Correct answer!")
-        next_step()
-    else:
-        st.error("Incorrect answer, please try again.")
+# Function to handle text response
+def handle_text_response(correct_answer, key):
+    user_answer = st.text_input("Your answer", key=key)
+    if st.button("Submit", key=f"submit_{key}"):
+        normalized_user_answer = normalize_text(user_answer)
+        normalized_correct_answer = normalize_text(correct_answer)
 
-# Function to validate audio response
-def validate_audio_response(correct_answer):
-    audio_data = capture_audio()
-    if audio_data:
-        transcription = transcribe_audio(audio_data)
-        if transcription.lower().strip() == correct_answer.lower().strip():
+        if is_similar(normalized_user_answer, normalized_correct_answer):
             st.success("Correct answer!")
-            next_step()
+            st.session_state[f"text_correct_{key}"] = True
         else:
             st.error("Incorrect answer, please try again.")
+            st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
 def video_template(data):
     st.write("Video")
     st.video(data['content'])
-    for question in data['questions']:
+    for i, question in enumerate(data['questions']):
         st.write(question['question'])
-        user_answer = st.text_input("Your answer", key=f"{data['id']}_{question['question']}")
-        if st.button("Submit", key=f"submit_{data['id']}_{question['question']}"):
-            validate_text_response(user_answer, question['correct_answer'])
-        if st.button("Record", key=f"record_{data['id']}_{question['question']}"):
-            validate_audio_response(question['correct_answer'])
+        handle_audio_response(question['correct_answer'], key=f"video_audio_{data['id']}_{i}")
+        handle_text_response(question['correct_answer'], key=f"video_text_{data['id']}_{i}")
 
 def bot_talk_template(data):
     st.write("Bot Talk")
-    for phrase in data['phrases']:
+    for i, phrase in enumerate(data['phrases']):
         st.write(phrase)
-        user_answer = st.text_input("Your response", key=f"{data['id']}_{phrase}")
-        if st.button("Submit", key=f"submit_{data['id']}_{phrase}"):
-            validate_text_response(user_answer, phrase)
-        if st.button("Record", key=f"record_{data['id']}_{phrase}"):
-            validate_audio_response(phrase)
+        handle_audio_response(phrase, key=f"botTalk_audio_{data['id']}_{i}")
+        handle_text_response(phrase, key=f"botTalk_text_{data['id']}_{i}")
 
 def pronunciations_template(data):
     st.write("Pronunciations")
-    for word in data['words']:
+    for i, word in enumerate(data['words']):
         st.write(word)
-        user_answer = st.text_input("Your pronunciation", key=f"{data['id']}_{word}")
-        if st.button("Submit", key=f"submit_{data['id']}_{word}"):
-            validate_text_response(user_answer, word)
-        if st.button("Record", key=f"record_{data['id']}_{word}"):
-            validate_audio_response(word)
+        handle_audio_response(word, key=f"pronunciations_audio_{data['id']}_{i}")
+        handle_text_response(word, key=f"pronunciations_text_{data['id']}_{i}")
 
 def speak_out_loud_template(data):
     st.write("Speak Out Loud")
-    for sentence in data['sentences']:
+    for i, sentence in enumerate(data['sentences']):
         st.write(sentence)
-        user_answer = st.text_input("Your speech", key=f"{data['id']}_{sentence}")
-        if st.button("Submit", key=f"submit_{data['id']}_{sentence}"):
-            validate_text_response(user_answer, sentence)
-        if st.button("Record", key=f"record_{data['id']}_{sentence}"):
-            validate_audio_response(sentence)
+        handle_audio_response(sentence, key=f"speakOutLoud_audio_{data['id']}_{i}")
+        handle_text_response(sentence, key=f"speakOutLoud_text_{data['id']}_{i}")
 
 # Function to select one random question from each path type
 def select_random_questions():
@@ -157,6 +150,28 @@ steps = current_path
 if current_step_index < len(steps):
     step = steps[current_step_index]
     render_step(step)
-    st.button("Next", on_click=next_step)
+
+    step_id = step['id']
+    question_count = len(step.get('questions', [])) + len(step.get('phrases', [])) + len(step.get('words', [])) + len(step.get('sentences', []))
+    all_questions_correct = all(
+        st.session_state.get(f"audio_correct_{step_id}_{i}") or 
+        st.session_state.get(f"text_correct_{step_id}_{i}")
+        for i in range(question_count)
+    )
+    if all_questions_correct:
+        st.button("Next", on_click=next_step)
 else:
     st.write("You have completed the path!")
+
+# Custom CSS to position the footer container
+st.markdown("""
+    <style>
+    .css-18e3th9 {
+        float: bottom;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Create footer container for the microphone
+footer_container = st.container()
+footer_container.float("bottom: 0rem;")

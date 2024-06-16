@@ -2,13 +2,14 @@ import streamlit as st
 import json
 import os
 
-# Load the question and video data from JSON files
+# Load the question data from JSON files
 def load_json(file_path):
-    with open(file_path, encoding='utf-8') as file:
-        return json.load(file)
+    if os.path.exists(file_path):
+        with open(file_path, encoding='utf-8') as file:
+            return json.load(file)
+    return {"questions": [], "videos": []}
 
 question_data = load_json('questions.json')
-video_data = load_json('videos.json')
 
 # Function to load existing submissions
 def load_submissions():
@@ -122,10 +123,10 @@ def verify_submission(submission):
 
 def add_to_bank(submission):
     if submission['type'] == 'video':
-        video_data['videos'].append({
-            "id": len(video_data['videos']) + 1,
-            "url": submission['content'],
-            "title": f"Video {len(video_data['videos']) + 1}",
+        question_data['questions'].append({
+            "id": len(question_data['questions']) + 1,
+            "type": "video",
+            "content": submission['content'],
             "questions": submission['questions'],
             "path": submission['path']
         })
@@ -154,17 +155,17 @@ def add_to_bank(submission):
     # Save the updated data back to the JSON files
     with open('questions.json', 'w', encoding='utf-8') as qf:
         json.dump(question_data, qf, ensure_ascii=False, indent=4)
-    with open('videos.json', 'w', encoding='utf-8') as vf:
-        json.dump(video_data, vf, ensure_ascii=False, indent=4)
 
 # Automated Verification and Addition
 if st.button("Verify and Add All Submissions"):
-    for submission in submissions:
-        if verify_submission(submission):
-            add_to_bank(submission)
-    # Clear submissions after adding them to the bank
-    open('submissions.json', 'w').close()
+    valid_submissions = [submission for submission in submissions if verify_submission(submission)]
+    for submission in valid_submissions:
+        add_to_bank(submission)
+    # Clear valid submissions after adding them to the bank
+    submissions = [submission for submission in submissions if not verify_submission(submission)]
+    save_submissions(submissions)
     st.success("All valid submissions verified and added to the bank!")
+    st.experimental_rerun()
 
 st.write("Submissions to be verified")
 for submission in submissions:
