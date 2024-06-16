@@ -20,6 +20,67 @@ def save_submissions(submissions):
 # Load existing submissions
 submissions = load_submissions()
 
+# Function to verify a submission
+def verify_submission(submission):
+    if submission['type'] == 'video':
+        return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
+    elif submission['type'] == 'botTalk':
+        return submission['phrases']
+    elif submission['type'] == 'pronunciations':
+        return submission['words']
+    elif submission['type'] == 'speakOutLoud':
+        return submission['sentences']
+    return False
+
+# Function to load question data from JSON file
+def load_questions():
+    if os.path.exists('questions.json'):
+        with open('questions.json', 'r', encoding='utf-8') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return {"questions": []}
+    return {"questions": []}
+
+# Save questions to JSON file
+def save_questions(questions):
+    with open('questions.json', 'w', encoding='utf-8') as file:
+        json.dump(questions, file, ensure_ascii=False, indent=4)
+
+# Add submission to the questions bank
+def add_to_bank(submission):
+    questions = load_questions()
+    if submission['type'] == 'video':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "video",
+            "content": submission['content'],
+            "questions": submission['questions'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'botTalk':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "botTalk",
+            "phrases": submission['phrases'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'pronunciations':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "pronunciations",
+            "words": submission['words'],
+            "path": submission['path']
+        })
+    elif submission['type'] == 'speakOutLoud':
+        questions['questions'].append({
+            "id": len(questions['questions']) + 1,
+            "type": "speakOutLoud",
+            "sentences": submission['sentences'],
+            "path": submission['path']
+        })
+    save_questions(questions)
+
 # Admin Page
 st.title("Admin Page")
 
@@ -92,3 +153,17 @@ for i, submission in enumerate(submissions):
         del submissions[i]
         save_submissions(submissions)
         st.experimental_rerun()
+
+# Automated Verification and Addition
+if st.button("Verify and Add All Valid Submissions"):
+    valid_submissions = [sub for sub in submissions if verify_submission(sub)]
+    for submission in valid_submissions:
+        add_to_bank(submission)
+    st.success("All valid submissions verified and added to the bank!")
+    submissions = [sub for sub in submissions if not verify_submission(sub)]
+    save_submissions(submissions)
+    st.experimental_rerun()
+
+st.write("Submissions to be verified")
+for submission in submissions:
+    st.write(submission)
