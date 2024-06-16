@@ -36,7 +36,7 @@ def is_similar(text1, text2, threshold=90):
     return fuzz.ratio(text1, text2) >= threshold
 
 # Function to handle audio response
-def handle_audio_response(correct_answer, key):
+def handle_audio_response(prompt, key):
     audio_data = audio_recorder("Record your response", key=key)
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
@@ -46,11 +46,10 @@ def handle_audio_response(correct_answer, key):
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
 
-        # Remove the "Please say" part from the correct answer
-        if correct_answer.lower().startswith("please say"):
-            correct_answer = correct_answer[10:].strip()
+        if prompt.lower().startswith("please say"):
+            prompt = prompt[10:].strip()
 
-        normalized_correct_answer = normalize_text(correct_answer)
+        normalized_correct_answer = normalize_text(prompt)
 
         if is_similar(normalized_transcription, normalized_correct_answer):
             st.success("Correct answer!")
@@ -59,24 +58,49 @@ def handle_audio_response(correct_answer, key):
             st.error("Incorrect answer, please try again.")
             st.session_state[f"audio_correct_{key}"] = False
 
-# Function to handle text response
-def handle_text_response(correct_answer, key):
+# Function to handle text response with specific checks for `botTalk`
+def handle_text_response(prompt, key):
     user_answer = st.text_input("Your answer", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_answer = normalize_text(user_answer)
 
-        # Remove the "Please say" part from the correct answer
-        if correct_answer.lower().startswith("please say"):
-            correct_answer = correct_answer[10:].strip()
-
-        normalized_correct_answer = normalize_text(correct_answer)
-
-        if is_similar(normalized_user_answer, normalized_correct_answer):
-            st.success("Correct answer!")
+        # Specific checks for `botTalk` questions
+        if "how are you" in prompt.lower():
+            if "i'm fine" in normalized_user_answer or "i am fine" in normalized_user_answer:
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
+        elif "what is your name" in prompt.lower():
+            if "my name is" in normalized_user_answer:
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
+        elif "good morning" in prompt.lower():
+            st.success("Correct answer!")  # This is more of a greeting, so any response is considered correct
             st.session_state[f"text_correct_{key}"] = True
+        elif "where are you from" in prompt.lower():
+            if "i am from" in normalized_user_answer or "i'm from" in normalized_user_answer:
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
         else:
-            st.error("Incorrect answer, please try again.")
-            st.session_state[f"text_correct_{key}"] = False
+            if prompt.lower().startswith("please say"):
+                prompt = prompt[10:].strip()
+            
+            normalized_correct_answer = normalize_text(prompt)
+
+            if is_similar(normalized_user_answer, normalized_correct_answer):
+                st.success("Correct answer!")
+                st.session_state[f"text_correct_{key}"] = True
+            else:
+                st.error("Incorrect answer, please try again.")
+                st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
 def video_template(data):
@@ -85,7 +109,7 @@ def video_template(data):
     for i, question in enumerate(data['questions']):
         st.write(question['question'])
         handle_audio_response(question['correct_answer'], key=f"video_audio_{data['id']}_{i}")
-        handle_text_response(question['correct_answer'], key=f"video_text_{data['id']}_{i}")
+        handle_text_response(question['question'], key=f"video_text_{data['id']}_{i}")
 
 def bot_talk_template(data):
     st.write("Bot Talk")
