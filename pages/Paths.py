@@ -131,6 +131,7 @@ def initialize_session_state():
 initialize_session_state()
 
 def next_step():
+    st.text("Next step")
     st.session_state.current_step += 1
     if st.session_state.current_step >= len(st.session_state.current_path):
         st.session_state.current_section += 1
