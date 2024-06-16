@@ -161,4 +161,3 @@ cython_debug/
 ppa.py
 groq_ai.py
 tts.py
-submissions.json
