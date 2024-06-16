@@ -21,9 +21,7 @@ def add_to_bank(submission):
     return response.json()
 
 st.title("Admin Page")
-st.set_page_config(
-    initial_sidebar_state="expanded",
-)
+
 st.sidebar.title("Submit Content")
 path_type = st.sidebar.selectbox("Path Type", ["video", "botTalk", "pronunciations", "speakOutLoud"])
 
