@@ -44,8 +44,6 @@ def handle_audio_response(correct_answer, key):
             audio_file_path = audio_file.name
         
         transcription = speech_to_text(audio_file_path)
-        st.write(f"Transcription: {transcription}")
-
         normalized_transcription = normalize_text(transcription)
 
         # Remove the "Please say" part from the correct answer
@@ -53,9 +51,6 @@ def handle_audio_response(correct_answer, key):
             correct_answer = correct_answer[10:].strip()
 
         normalized_correct_answer = normalize_text(correct_answer)
-
-        st.write(f"Normalized Transcription: {normalized_transcription}")  # Debug statement
-        st.write(f"Normalized Correct Answer: {normalized_correct_answer}")  # Debug statement
 
         if is_similar(normalized_transcription, normalized_correct_answer):
             st.success("Correct answer!")
@@ -75,9 +70,6 @@ def handle_text_response(correct_answer, key):
             correct_answer = correct_answer[10:].strip()
 
         normalized_correct_answer = normalize_text(correct_answer)
-
-        st.write(f"Normalized User Answer: {normalized_user_answer}")  # Debug statement
-        st.write(f"Normalized Correct Answer: {normalized_correct_answer}")  # Debug statement
 
         if is_similar(normalized_user_answer, normalized_correct_answer):
             st.success("Correct answer!")
@@ -171,26 +163,21 @@ if current_step_index < len(steps):
 
     step_id = step['id']
     question_count = len(step.get('questions', [])) + len(step.get('phrases', [])) + len(step.get('words', [])) + len(step.get('sentences', []))
-    
-    # Debug information
-    st.write(f"Step ID: {step_id}")
-    st.write(f"Question count: {question_count}")
-    for i in range(question_count):
-        st.write(f"Audio correct for question {i}: {st.session_state.get(f'audio_correct_{step_id}_{i}')}")
-        st.write(f"Text correct for question {i}: {st.session_state.get(f'text_correct_{step_id}_{i}')}")
 
     all_questions_correct = all(
-        st.session_state.get(f"audio_correct_{step_id}_{i}") or 
-        st.session_state.get(f"text_correct_{step_id}_{i}")
+        st.session_state.get(f"audio_correct_{step_id}_{i}", False) or 
+        st.session_state.get(f"text_correct_{step_id}_{i}", False)
         for i in range(question_count)
     )
-    
-    st.write(f"All questions correct: {all_questions_correct}")  # Debug statement
-    
+
     if all_questions_correct:
-        st.button("Next", on_click=next_step)
+        st.success("You have answered all questions correctly! You can proceed to the next path.")
 else:
     st.write("You have completed the path!")
+
+# Always display the Next button
+if st.button("Next"):
+    next_step()
 
 # Custom CSS to position the footer container
 st.markdown("""
