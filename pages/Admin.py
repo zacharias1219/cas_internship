@@ -4,7 +4,8 @@ import requests
 import os
 
 # Define the API URL
-API_URL = "http://127.0.0.1:5000"
+# Update this with the public IP or domain name if deploying
+API_URL = "https://caslearnings.streamlit.app/Admin"
 
 # Function to load question data from JSON file
 def load_question_data():
