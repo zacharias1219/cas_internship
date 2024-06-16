@@ -4,7 +4,7 @@ import requests
 import os
 
 # Define the API URL
-API_URL = "http://192.168.1.103:5000"
+API_URL = "http://127.0.0.1:5000"
 
 # Function to load question data from JSON file
 def load_question_data():
