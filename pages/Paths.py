@@ -18,8 +18,10 @@ float_init()
 
 # Load the question data from JSON files
 def load_json(file_path):
-    with open(file_path, encoding='utf-8') as file:
-        return json.load(file)
+    if os.path.exists(file_path):
+        with open(file_path, encoding='utf-8') as file:
+            return json.load(file)
+    return {"questions": []}
 
 question_data = load_json('questions.json')
 
@@ -47,6 +49,9 @@ def handle_audio_response(correct_answer, key):
         normalized_transcription = normalize_text(transcription)
         normalized_correct_answer = normalize_text(correct_answer)
 
+        st.write(f"Normalized Transcription: {normalized_transcription}")  # Debug statement
+        st.write(f"Normalized Correct Answer: {normalized_correct_answer}")  # Debug statement
+
         if is_similar(normalized_transcription, normalized_correct_answer):
             st.success("Correct answer!")
             st.session_state[f"audio_correct_{key}"] = True
@@ -60,6 +65,9 @@ def handle_text_response(correct_answer, key):
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_answer = normalize_text(user_answer)
         normalized_correct_answer = normalize_text(correct_answer)
+
+        st.write(f"Normalized User Answer: {normalized_user_answer}")  # Debug statement
+        st.write(f"Normalized Correct Answer: {normalized_correct_answer}")  # Debug statement
 
         if is_similar(normalized_user_answer, normalized_correct_answer):
             st.success("Correct answer!")
@@ -153,11 +161,22 @@ if current_step_index < len(steps):
 
     step_id = step['id']
     question_count = len(step.get('questions', [])) + len(step.get('phrases', [])) + len(step.get('words', [])) + len(step.get('sentences', []))
+    
+    # Debug information
+    st.write(f"Step ID: {step_id}")
+    st.write(f"Question count: {question_count}")
+    for i in range(question_count):
+        st.write(f"Audio correct for question {i}: {st.session_state.get(f'audio_correct_{step_id}_{i}')}")
+        st.write(f"Text correct for question {i}: {st.session_state.get(f'text_correct_{step_id}_{i}')}")
+
     all_questions_correct = all(
         st.session_state.get(f"audio_correct_{step_id}_{i}") or 
         st.session_state.get(f"text_correct_{step_id}_{i}")
         for i in range(question_count)
     )
+    
+    st.write(f"All questions correct: {all_questions_correct}")  # Debug statement
+    
     if all_questions_correct:
         st.button("Next", on_click=next_step)
 else:

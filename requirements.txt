@@ -5,3 +5,6 @@ openai
 python-dotenv
 groq
 sentence_transformers
+fuzzywuzzy
+Flask
+Flask-Cors
