@@ -37,7 +37,7 @@ def is_similar(text1, text2, threshold=90):
 
 # Function to handle audio response
 def handle_audio_response(prompt, correct_answer, key):
-    audio_data = audio_recorder(f"Record your response: {prompt}", key=key)
+    audio_data = audio_recorder(f"Record your response:", key=key)
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -56,7 +56,7 @@ def handle_audio_response(prompt, correct_answer, key):
 
 # Function to handle text response
 def handle_text_response(prompt, correct_answer, key):
-    user_response = st.text_input(f"Your answer: {prompt}", key=key)
+    user_response = st.text_input(f"Your answer should be {prompt}", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_response = normalize_text(user_response)
         normalized_correct_answer = normalize_text(correct_answer)
