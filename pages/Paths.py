@@ -87,9 +87,10 @@ def bot_talk_template(data):
     }
     for i, phrase in enumerate(data['phrases']):
         st.write(phrase)
-        prompt = f"Please say: {responses[phrase]}"
-        handle_audio_response(prompt, responses[phrase], key=f"botTalk_audio_{data['id']}_{i}")
-        handle_text_response(prompt, responses[phrase], key=f"botTalk_text_{data['id']}_{i}")
+        hint = responses[phrase]
+        st.write(f"Say: {hint}")
+        handle_audio_response(phrase, hint, key=f"botTalk_audio_{data['id']}_{i}")
+        handle_text_response(phrase, hint, key=f"botTalk_text_{data['id']}_{i}")
 
 def pronunciations_template(data):
     st.write("Pronunciations")
