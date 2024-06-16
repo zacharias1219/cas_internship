@@ -1,6 +1,11 @@
 import streamlit as st
 import json
 import os
+import sys
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 from utils import speech_to_text, normalize_text
 from audio_recorder_streamlit import audio_recorder
 
