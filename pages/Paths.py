@@ -17,10 +17,10 @@ with open('questions.json', 'r', encoding='utf-8') as qf:
 def initialize_session_state():
     if 'current_step' not in st.session_state:
         st.session_state.current_step = 0
-    if 'current_path' not in st.session_state:
-        st.session_state.current_path = question_data['paths'][0]
     if 'correct_answers' not in st.session_state:
         st.session_state.correct_answers = 0
+    if 'total_questions' not in st.session_state:
+        st.session_state.total_questions = 0
 
 initialize_session_state()
 
@@ -94,16 +94,22 @@ def next_step():
 # Main application logic
 st.title("Interactive Learning Path")
 
-current_path = st.session_state.current_path
+# Define the current step index
 current_step_index = st.session_state.current_step
-steps = current_path['steps']
-total_questions = sum(len(step['data'].get('sentences', [])) + len(step['data'].get('phrases', [])) + len(step['data'].get('words', [])) for step in steps)
 
-if current_step_index < len(steps):
-    step = steps[current_step_index]
+# Get the total number of questions in the current step
+def count_total_questions():
+    current_step = question_data['questions'][current_step_index]
+    return len(current_step['data'].get('sentences', [])) + len(current_step['data'].get('phrases', [])) + len(current_step['data'].get('words', []))
+
+if 'total_questions' not in st.session_state or st.session_state.total_questions == 0:
+    st.session_state.total_questions = count_total_questions()
+
+if current_step_index < len(question_data['questions']):
+    step = question_data['questions'][current_step_index]
     render_step(step)
-    st.write(f"Progress: {st.session_state.correct_answers}/{total_questions}")
-    if st.session_state.correct_answers == total_questions:
+    st.write(f"Progress: {st.session_state.correct_answers}/{st.session_state.total_questions}")
+    if st.session_state.correct_answers == st.session_state.total_questions:
         next_step()
 else:
     st.write("You have completed the path!")
