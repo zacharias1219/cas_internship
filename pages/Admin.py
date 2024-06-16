@@ -4,8 +4,7 @@ import requests
 import os
 
 # Define the API URL
-# Update this with the public IP or domain name if deploying
-API_URL = "https://caslearnings.streamlit.app/Admin"
+API_URL = "http://127.0.0.1:5000"
 
 # Function to load question data from JSON file
 def load_question_data():
@@ -19,9 +18,13 @@ question_data = load_question_data()
 def get_submissions():
     try:
         response = requests.get(f"{API_URL}/submissions")
-        response.raise_for_status()
-        st.write("API Response Content:", response.content)  # Debug statement
-        return response.json()
+        if response.status_code == 200:
+            st.write("API Response Content:", response.json())  # Debug statement
+            return response.json()
+        else:
+            st.error(f"Error fetching submissions: Status Code {response.status_code}")
+            st.write("Response Content:", response.text)  # Debugging info
+            return []
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching submissions: {e}")
         return []
@@ -30,7 +33,11 @@ def get_submissions():
 def save_submission(submission):
     try:
         response = requests.post(f"{API_URL}/submissions", json=submission)
-        response.raise_for_status()
+        if response.status_code == 201:
+            st.success("Submitted successfully!")
+        else:
+            st.error(f"Error saving submission: Status Code {response.status_code}")
+            st.write("Response Content:", response.text)  # Debugging info
     except requests.exceptions.RequestException as e:
         st.error(f"Error saving submission: {e}")
 
@@ -38,7 +45,11 @@ def save_submission(submission):
 def delete_submission(index):
     try:
         response = requests.delete(f"{API_URL}/submissions/{index}")
-        response.raise_for_status()
+        if response.status_code == 200:
+            st.success("Deleted successfully!")
+        else:
+            st.error(f"Error deleting submission: Status Code {response.status_code}")
+            st.write("Response Content:", response.text)  # Debugging info
     except requests.exceptions.RequestException as e:
         st.error(f"Error deleting submission: {e}")
 
@@ -65,7 +76,6 @@ if path_type == "video":
             "path": "video"
         }
         save_submission(submission)
-        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "botTalk":
     phrases = st.sidebar.text_area("Phrases (comma separated)")
@@ -77,7 +87,6 @@ elif path_type == "botTalk":
             "path": "botTalk"
         }
         save_submission(submission)
-        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "pronunciations":
     words = st.sidebar.text_area("Words (comma separated)")
@@ -89,7 +98,6 @@ elif path_type == "pronunciations":
             "path": "pronunciations"
         }
         save_submission(submission)
-        st.sidebar.success("Submitted successfully!")
 
 elif path_type == "speakOutLoud":
     sentences = st.sidebar.text_area("Sentences (comma separated)")
@@ -101,7 +109,6 @@ elif path_type == "speakOutLoud":
             "path": "speakOutLoud"
         }
         save_submission(submission)
-        st.sidebar.success("Submitted successfully!")
 
 st.write("Submissions")
 submissions = get_submissions()
@@ -113,7 +120,6 @@ for i, submission in enumerate(submissions):
 
 # Function to verify and add submissions to the bank
 def verify_submission(submission):
-    # Example criteria: Ensure all fields are filled
     if submission['type'] == 'video':
         return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
     elif submission['type'] == 'botTalk':
@@ -155,7 +161,6 @@ def add_to_bank(submission):
             "path": submission['path']
         })
 
-    # Save the updated data back to the JSON file
     with open('questions.json', 'w', encoding='utf-8') as qf:
         json.dump(question_data, qf, ensure_ascii=False, indent=4)
 
@@ -164,7 +169,6 @@ if st.button("Verify and Add All Submissions"):
     for submission in submissions:
         if verify_submission(submission):
             add_to_bank(submission)
-    # Clear submissions after adding them to the bank
     open('submissions.json', 'w').close()
     st.success("All valid submissions verified and added to the bank!")
 
