@@ -1,49 +1,24 @@
 import streamlit as st
 import json
-import requests
 import os
 
-# Define the API URL
-API_URL = "http://127.0.0.1:5000"
+# Load the submission data from JSON file
+def load_submissions():
+    if os.path.exists('submissions.json'):
+        with open('submissions.json', 'r', encoding='utf-8') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return []
+    return []
 
-# Function to load question data from the API
-def load_question_data():
-    try:
-        response = requests.get(f"{API_URL}/questions")
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching questions: {e}")
-        return {"questions": []}
+# Save submissions to JSON file
+def save_submissions(submissions):
+    with open('submissions.json', 'w', encoding='utf-8') as file:
+        json.dump(submissions, file, ensure_ascii=False, indent=4)
 
-# Load question data
-question_data = load_question_data()
-
-# Function to load existing submissions from the API
-def get_submissions():
-    try:
-        response = requests.get(f"{API_URL}/submissions")
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching submissions: {e}")
-        return []
-
-# Function to save a new submission to the API
-def save_submission(submission):
-    try:
-        response = requests.post(f"{API_URL}/submissions", json=submission)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error saving submission: {e}")
-
-# Function to delete a submission from the API
-def delete_submission(index):
-    try:
-        response = requests.delete(f"{API_URL}/submissions/{index}")
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error deleting submission: {e}")
+# Load existing submissions
+submissions = load_submissions()
 
 # Admin Page
 st.title("Admin Page")
@@ -67,7 +42,8 @@ if path_type == "video":
             ],
             "path": "video"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "botTalk":
@@ -79,7 +55,8 @@ elif path_type == "botTalk":
             "phrases": phrases_list,
             "path": "botTalk"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "pronunciations":
@@ -91,7 +68,8 @@ elif path_type == "pronunciations":
             "words": words_list,
             "path": "pronunciations"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 elif path_type == "speakOutLoud":
@@ -103,71 +81,14 @@ elif path_type == "speakOutLoud":
             "sentences": sentences_list,
             "path": "speakOutLoud"
         }
-        save_submission(submission)
+        submissions.append(submission)
+        save_submissions(submissions)
         st.sidebar.success("Submitted successfully!")
 
 st.write("Submissions")
-submissions = get_submissions()
 for i, submission in enumerate(submissions):
     st.write(submission)
     if st.button(f"Delete {i}", key=f"delete_{i}"):
-        delete_submission(i)
+        del submissions[i]
+        save_submissions(submissions)
         st.experimental_rerun()
-
-# Function to verify and add submissions to the bank
-def verify_submission(submission):
-    if submission['type'] == 'video':
-        return submission['content'] and submission['questions'][0]['question'] and submission['questions'][0]['correct_answer']
-    elif submission['type'] == 'botTalk':
-        return submission['phrases']
-    elif submission['type'] == 'pronunciations':
-        return submission['words']
-    elif submission['type'] == 'speakOutLoud':
-        return submission['sentences']
-    return False
-
-def add_to_bank(submission):
-    if submission['type'] == 'video':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "video",
-            "content": submission['content'],
-            "questions": submission['questions'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'botTalk':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "botTalk",
-            "phrases": submission['phrases'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'pronunciations':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "pronunciations",
-            "words": submission['words'],
-            "path": submission['path']
-        })
-    elif submission['type'] == 'speakOutLoud':
-        question_data['questions'].append({
-            "id": len(question_data['questions']) + 1,
-            "type": "speakOutLoud",
-            "sentences": submission['sentences'],
-            "path": submission['path']
-        })
-
-    with open('questions.json', 'w', encoding='utf-8') as qf:
-        json.dump(question_data, qf, ensure_ascii=False, indent=4)
-
-# Automated Verification and Addition
-if st.button("Verify and Add All Submissions"):
-    for submission in submissions:
-        if verify_submission(submission):
-            add_to_bank(submission)
-    open('submissions.json', 'w').close()
-    st.success("All valid submissions verified and added to the bank!")
-
-st.write("Submissions to be verified")
-for submission in submissions:
-    st.write(submission)
