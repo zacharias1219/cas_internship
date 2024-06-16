@@ -47,6 +47,11 @@ def handle_audio_response(correct_answer, key):
         st.write(f"Transcription: {transcription}")
 
         normalized_transcription = normalize_text(transcription)
+
+        # Remove the "Please say" part from the correct answer
+        if correct_answer.lower().startswith("please say"):
+            correct_answer = correct_answer[10:].strip()
+
         normalized_correct_answer = normalize_text(correct_answer)
 
         st.write(f"Normalized Transcription: {normalized_transcription}")  # Debug statement
@@ -64,6 +69,11 @@ def handle_text_response(correct_answer, key):
     user_answer = st.text_input("Your answer", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_answer = normalize_text(user_answer)
+
+        # Remove the "Please say" part from the correct answer
+        if correct_answer.lower().startswith("please say"):
+            correct_answer = correct_answer[10:].strip()
+
         normalized_correct_answer = normalize_text(correct_answer)
 
         st.write(f"Normalized User Answer: {normalized_user_answer}")  # Debug statement
