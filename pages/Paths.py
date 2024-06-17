@@ -56,14 +56,14 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer. You said: '{transcription}', but you should say: '{correct_answer}'")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
             if is_similar(normalized_transcription, normalized_correct_answer):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer. You said: '{transcription}', but you should say: '{correct_answer}'")
                 st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
@@ -78,14 +78,14 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer. You said: '{user_response}', but you should say: '{correct_answer}'")
                 st.session_state[f"text_correct_{key}"] = False
         else:
             if is_similar(normalized_user_response, normalized_correct_answer):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer. You said: '{user_response}', but you should say: '{correct_answer}'")
                 st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
@@ -161,6 +161,7 @@ def next_step():
         st.session_state.current_step = 0
         if st.session_state.current_section < 12:
             st.session_state.current_path = select_random_questions()
+    st.session_state.next_clicked = False
 
 def render_step(step):
     step_type = step['type']
