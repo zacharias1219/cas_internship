@@ -66,7 +66,7 @@ if question_type == "video":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "botTalk":
-    phrases = st.sidebar.text_area("Phrases (comma separated) (Only Two)")
+    phrases = st.sidebar.text_area("Phrases (comma separated)(Only Two)")
     if st.sidebar.button("Add Question"):
         phrases_list = [phrase.strip() for phrase in phrases.split(',')]
         new_question = {
