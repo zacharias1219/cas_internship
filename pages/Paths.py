@@ -56,14 +56,14 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                st.error(f"Incorrect answer. You said: '{transcription}', but you should say: '{correct_answer}'")
+                st.error(f"Incorrect answer, you said '{transcription}', please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
             if is_similar(normalized_transcription, normalized_correct_answer):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                st.error(f"Incorrect answer. You said: '{transcription}', but you should say: '{correct_answer}'")
+                st.error(f"Incorrect answer, you said '{transcription}', please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
@@ -78,14 +78,14 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                st.error(f"Incorrect answer. You said: '{user_response}', but you should say: '{correct_answer}'")
+                st.error(f"Incorrect answer, you said '{user_response}', please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
             if is_similar(normalized_user_response, normalized_correct_answer):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                st.error(f"Incorrect answer. You said: '{user_response}', but you should say: '{correct_answer}'")
+                st.error(f"Incorrect answer, you said '{user_response}', please try again.")
                 st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
@@ -145,7 +145,7 @@ def initialize_session_state():
     if 'current_section' not in st.session_state:
         st.session_state.current_section = 0
     if 'current_path' not in st.session_state:
-        st.session_state.current_path = select_random_questions()
+        st.session_state.current_path = question_data['questions']
     if 'current_step' not in st.session_state:
         st.session_state.current_step = 0
     if 'next_clicked' not in st.session_state:
@@ -160,8 +160,7 @@ def next_step():
         st.session_state.current_section += 1
         st.session_state.current_step = 0
         if st.session_state.current_section < 12:
-            st.session_state.current_path = select_random_questions()
-    st.session_state.next_clicked = False
+            st.session_state.current_path = question_data['questions']
 
 def render_step(step):
     step_type = step['type']
