@@ -66,7 +66,7 @@ if question_type == "video":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "botTalk":
-    phrases = st.sidebar.text_area("Phrases (comma separated)")
+    phrases = st.sidebar.text_area("Phrases (comma separated) (Only Two)")
     if st.sidebar.button("Add Question"):
         phrases_list = [phrase.strip() for phrase in phrases.split(',')]
         new_question = {
@@ -78,7 +78,7 @@ elif question_type == "botTalk":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "pronunciations":
-    words = st.sidebar.text_area("Words (comma separated)")
+    words = st.sidebar.text_area("Words (comma separated) (Only Two)")
     if st.sidebar.button("Add Question"):
         words_list = [word.strip() for word in words.split(',')]
         new_question = {
@@ -90,7 +90,7 @@ elif question_type == "pronunciations":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "speakOutLoud":
-    sentences = st.sidebar.text_area("Sentences (comma separated)")
+    sentences = st.sidebar.text_area("Sentences (comma separated) (Only Two)")
     if st.sidebar.button("Add Question"):
         sentences_list = [sentence.strip() for sentence in sentences.split(',')]
         new_question = {
