@@ -55,8 +55,8 @@
             "id": 6,
             "type": "speakOutLoud",
             "sentences": [
-                "Please say 'The quick brown fox jumps over the lazy dog.'",
-                "Please say 'She sells seashells by the seashore.'"
+                "The quick brown fox jumps over the lazy dog.",
+                "She sells seashells by the seashore."
             ],
             "path": "speakOutLoud"
         },
@@ -73,8 +73,8 @@
             "id": 8,
             "type": "speakOutLoud",
             "sentences": [
-                "Please say 'How much wood would a woodchuck chuck if a woodchuck could chuck wood?'",
-                "Please say 'Peter Piper picked a peck of pickled peppers.'"
+                "How much wood would a woodchuck chuck if a woodchuck could chuck wood?",
+                "Peter Piper picked a peck of pickled peppers."
             ],
             "path": "speakOutLoud"
         }
