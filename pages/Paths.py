@@ -46,7 +46,6 @@ def highlight_errors(user_response, correct_answer):
             highlighted_user_response.append(f"<span style='color: red; text-decoration: underline;'>{user_response[i1:i2]}</span>")
         elif tag == 'insert':
             highlighted_user_response.append(f"<span style='color: red; text-decoration: underline;'>{correct_answer[j1:j2]}</span>")
-
     return ''.join(highlighted_user_response)
 
 # Function to handle audio response
@@ -57,6 +56,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
             audio_file.write(audio_data)
             audio_file_path = audio_file.name
         
+        st.session_state.status = "Listening..."
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
         normalized_correct_answer = normalize_text(correct_answer)
@@ -64,24 +64,26 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
         similarity_score = fuzz.ratio(normalized_transcription, normalized_correct_answer)
         percentage_correct = similarity_score
 
-        
+        st.session_state.status = "Analyzing..."
         if check_partial:
             if contains_phrase(normalized_transcription, normalized_correct_answer):
-                st.success("Correct answer!")
+                st.session_state.status = "Correct answer!"
                 st.session_state[f"audio_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.session_state.status = "Try again."
                 st.session_state[f"audio_correct_{key}"] = False
         else:
             if percentage_correct >= 90:  # Using a threshold for similarity
-                st.success("Correct answer!")
+                st.session_state.status = "Correct answer!"
                 st.session_state[f"audio_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.session_state.status = "Try again."
                 st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
@@ -94,24 +96,26 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
         similarity_score = fuzz.ratio(normalized_user_response, normalized_correct_answer)
         percentage_correct = similarity_score
 
-
+        st.session_state.status = "Analyzing..."
         if check_partial:
             if contains_phrase(normalized_user_response, normalized_correct_answer):
-                st.success("Correct answer!")
+                st.session_state.status = "Correct answer!"
                 st.session_state[f"text_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.session_state.status = "Try again."
                 st.session_state[f"text_correct_{key}"] = False
         else:
             if percentage_correct >= 90:  # Using a threshold for similarity
-                st.success("Correct answer!")
+                st.session_state.status = "Correct answer!"
                 st.session_state[f"text_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.session_state.status = "Try again."
                 st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
@@ -157,11 +161,14 @@ def speak_out_loud_template(data, question_number):
 def initialize_session_state():
     if 'current_step' not in st.session_state:
         st.session_state.current_step = 0
+    if 'status' not in st.session_state:
+        st.session_state.status = "Waiting for you to speak (click the button)"
 
 initialize_session_state()
 
 def next_step():
     st.session_state.current_step += 1
+    st.session_state.status = "Waiting for you to speak (click the button)"
 
 def render_step(step, question_number):
     step_type = step['type']
@@ -175,6 +182,9 @@ def render_step(step, question_number):
         speak_out_loud_template(step, question_number)
 
 st.title("Interactive Learning Path")
+
+# Display the status
+st.markdown(f"**Status: {st.session_state.status}**")
 
 steps = question_data['questions']
 current_step_index = st.session_state.current_step
