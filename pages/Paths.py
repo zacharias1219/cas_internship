@@ -51,7 +51,7 @@ def highlight_errors(user_response, correct_answer):
 
 # Function to handle audio response
 def handle_audio_response(prompt, correct_answer, key, check_partial=False):
-    audio_data = audio_recorder(f"Record your response:", key=key, pause_threshold=5.0, icon_size="2x")
+    audio_data = audio_recorder(f"Record:", key=key, pause_threshold=2.5, icon_size="2x")
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -69,7 +69,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(normalized_transcription, normalized_correct_answer)
+                highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
@@ -79,7 +79,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(normalized_transcription, normalized_correct_answer)
+                highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
@@ -99,7 +99,7 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(normalized_user_response, normalized_correct_answer)
+                highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
@@ -109,7 +109,7 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(normalized_user_response, normalized_correct_answer)
+                highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
