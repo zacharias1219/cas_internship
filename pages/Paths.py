@@ -64,7 +64,6 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
         similarity_score = fuzz.ratio(normalized_transcription, normalized_correct_answer)
         percentage_correct = similarity_score
 
-        st.write(f"You Said: {transcription} (Similarity: {percentage_correct}%)")
         
         if check_partial:
             if contains_phrase(normalized_transcription, normalized_correct_answer):
@@ -73,7 +72,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
             if percentage_correct >= 90:  # Using a threshold for similarity
@@ -82,7 +81,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
                 st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
@@ -95,7 +94,6 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
         similarity_score = fuzz.ratio(normalized_user_response, normalized_correct_answer)
         percentage_correct = similarity_score
 
-        st.write(f"You Said: {user_response} (Similarity: {percentage_correct}%)")
 
         if check_partial:
             if contains_phrase(normalized_user_response, normalized_correct_answer):
@@ -104,7 +102,7 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
                 st.session_state[f"text_correct_{key}"] = False
         else:
             if percentage_correct >= 90:  # Using a threshold for similarity
@@ -113,7 +111,7 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error("Incorrect answer, please try again.")
+                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
                 st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
