@@ -51,7 +51,7 @@ def highlight_errors(user_response, correct_answer):
 
 # Function to handle audio response
 def handle_audio_response(prompt, correct_answer, key, check_partial=False):
-    audio_data = audio_recorder(f"Record your response:", key=key)
+    audio_data = audio_recorder(f"Record your response:", key=key, pause_threshold=5.0, icon_size="2x")
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -61,23 +61,25 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
         normalized_transcription = normalize_text(transcription)
         normalized_correct_answer = normalize_text(correct_answer)
 
+        similarity_score = fuzz.ratio(normalized_transcription, normalized_correct_answer)
+        
         if check_partial:
             if contains_phrase(normalized_transcription, normalized_correct_answer):
                 st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(transcription, correct_answer)
+                highlighted_user_response = highlight_errors(normalized_transcription, normalized_correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
-            if normalized_transcription == normalized_correct_answer:
+            if similarity_score >= 90:  # Using a threshold for similarity
                 st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(transcription, correct_answer)
+                highlighted_user_response = highlight_errors(normalized_transcription, normalized_correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
@@ -89,38 +91,40 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
         normalized_user_response = normalize_text(user_response)
         normalized_correct_answer = normalize_text(correct_answer)
 
+        similarity_score = fuzz.ratio(normalized_user_response, normalized_correct_answer)
+
         if check_partial:
             if contains_phrase(normalized_user_response, normalized_correct_answer):
                 st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(user_response, correct_answer)
+                highlighted_user_response = highlight_errors(normalized_user_response, normalized_correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
-            if normalized_user_response == normalized_correct_answer:
+            if similarity_score >= 90:  # Using a threshold for similarity
                 st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(user_response, correct_answer)
+                highlighted_user_response = highlight_errors(normalized_user_response, normalized_correct_answer)
                 st.markdown(f"You Said: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error("Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
 
 # Template functions
-def video_template(data):
-    st.write("Video")
+def video_template(data, question_number):
+    st.write(f"Question {question_number}: Video")
     st.video(data['content'])
     for i, question in enumerate(data['questions']):
         st.write(question['question'])
         handle_audio_response(question['question'], question['correct_answer'], key=f"video_audio_{data['id']}_{i}")
         handle_text_response(question['question'], question['correct_answer'], key=f"video_text_{data['id']}_{i}")
 
-def bot_talk_template(data):
-    st.write("Bot Talk")
+def bot_talk_template(data, question_number):
+    st.write(f"Question {question_number}: Bot Talk")
     responses = {
         "Hello! How are you?": "I'm doing well.",
         "What is your name?": "My name is",
@@ -135,15 +139,15 @@ def bot_talk_template(data):
         handle_audio_response(phrase, hint, key=f"botTalk_audio_{data['id']}_{i}", check_partial=check_partial)
         handle_text_response(phrase, hint, key=f"botTalk_text_{data['id']}_{i}", check_partial=check_partial)
 
-def pronunciations_template(data):
-    st.write("Pronunciations")
+def pronunciations_template(data, question_number):
+    st.write(f"Question {question_number}: Pronunciations")
     for i, word in enumerate(data['words']):
         st.write(word)
         handle_audio_response(word, word, key=f"pronunciations_audio_{data['id']}_{i}")
         handle_text_response(word, word, key=f"pronunciations_text_{data['id']}_{i}")
 
-def speak_out_loud_template(data):
-    st.write("Speak Out Loud")
+def speak_out_loud_template(data, question_number):
+    st.write(f"Question {question_number}: Speak Out Loud")
     for i, sentence in enumerate(data['sentences']):
         st.write(sentence)
         handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}")
@@ -159,16 +163,16 @@ initialize_session_state()
 def next_step():
     st.session_state.current_step += 1
 
-def render_step(step):
+def render_step(step, question_number):
     step_type = step['type']
     if step_type == 'video':
-        video_template(step)
+        video_template(step, question_number)
     elif step_type == 'botTalk':
-        bot_talk_template(step)
+        bot_talk_template(step, question_number)
     elif step_type == 'pronunciations':
-        pronunciations_template(step)
+        pronunciations_template(step, question_number)
     elif step_type == 'speakOutLoud':
-        speak_out_loud_template(step)
+        speak_out_loud_template(step, question_number)
 
 st.title("Interactive Learning Path")
 
@@ -177,7 +181,8 @@ current_step_index = st.session_state.current_step
 
 if current_step_index < len(steps):
     step = steps[current_step_index]
-    render_step(step)
+    question_number = current_step_index + 1
+    render_step(step, question_number)
 
     step_id = step['id']
     question_count = len(step.get('questions', [])) + len(step.get('phrases', [])) + len(step.get('words', [])) + len(step.get('sentences', []))

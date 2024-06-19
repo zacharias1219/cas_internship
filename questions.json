@@ -77,6 +77,25 @@
                 "Peter Piper picked a peck of pickled peppers."
             ],
             "path": "speakOutLoud"
+        },
+        {
+            "id": 9,
+            "type": "speakOutLoud",
+            "sentences": [
+                "Narendra Modi became prime minister of India in 2014. It was a land slide victory for BJP party",
+                "BJP came to power after 20 years."
+            ],
+            "path": "speakOutLoud"
+        },
+        {
+            "id": 10,
+            "type": "speakOutLoud",
+            "sentences": [
+                "Theory of evolution by Charles Darwin states that every species took birth from one single cell. This cell was first born thousand of years ago",
+                "First came the plants then the Animals like Dinosaurs and then came the mammals."
+            ],
+            "path": "speakOutLoud"
         }
+        
     ]
 }
