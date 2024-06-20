@@ -148,6 +148,18 @@ def speak_out_loud_template(data, question_number):
         handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}")
         handle_text_response(sentence, sentence, key=f"speakOutLoud_text_{data['id']}_{i}")
 
+def text_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Text Quiz")
+    for i, question in enumerate(data['questions']):
+        st.write(question['question'])
+        handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_{data['id']}_{i}")
+
+def voice_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Voice Quiz")
+    for i, question in enumerate(data['questions']):
+        st.write(question['question'])
+        handle_audio_response(question['question'], question['correct_answer'], key=f"voiceQuiz_audio_{data['id']}_{i}")
+
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -166,6 +178,10 @@ def render_step(step, question_number):
         bot_talk_template(step, question_number)
     elif step_type == 'speakOutLoud':
         speak_out_loud_template(step, question_number)
+    elif step_type == 'textQuiz':
+        text_quiz_template(step, question_number)
+    elif step_type == 'voiceQuiz':
+        voice_quiz_template(step, question_number)
 
 st.title("Interactive Learning Path")
 

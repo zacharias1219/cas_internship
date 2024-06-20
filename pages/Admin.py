@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "speakOutLoud"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "speakOutLoud", "textQuiz", "voiceQuiz"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -89,14 +89,47 @@ elif question_type == "speakOutLoud":
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
 
+elif question_type == "textQuiz":
+    quiz_question1 = st.sidebar.text_input("Quiz Question 1")
+    correct_answer1 = st.sidebar.text_input("Correct Answer 1")
+    quiz_question2 = st.sidebar.text_input("Quiz Question 2")
+    correct_answer2 = st.sidebar.text_input("Correct Answer 2")
+    if st.sidebar.button("Add Question"):
+        new_question = {
+            "type": "textQuiz",
+            "questions": [
+                {"question": quiz_question1, "correct_answer": correct_answer1},
+                {"question": quiz_question2, "correct_answer": correct_answer2}
+            ],
+            "path": "textQuiz"
+        }
+        add_question(new_question)
+        st.sidebar.success("Question added successfully!")
+
+elif question_type == "voiceQuiz":
+    quiz_question1 = st.sidebar.text_input("Quiz Question 1")
+    correct_answer1 = st.sidebar.text_input("Correct Answer 1")
+    quiz_question2 = st.sidebar.text_input("Quiz Question 2")
+    correct_answer2 = st.sidebar.text_input("Correct Answer 2")
+    if st.sidebar.button("Add Question"):
+        new_question = {
+            "type": "voiceQuiz",
+            "questions": [
+                {"question": quiz_question1, "correct_answer": correct_answer1},
+                {"question": quiz_question2, "correct_answer": correct_answer2}
+            ],
+            "path": "voiceQuiz"
+        }
+        add_question(new_question)
+        st.sidebar.success("Question added successfully!")
+
 # Display Current Sequence
 st.header("Current Sequence")
 questions = load_questions()["questions"]
 
 for index, question in enumerate(questions):
     st.write(f"{index + 1}. {question['type']} - {question.get('content', 'N/A')}")
-    st.write(question.get('phrases', question.get('sentences', 'N/A')))
-    st.write(question.get('questions', 'N/A'))
+    st.write(question.get('phrases', question.get('sentences', question.get('questions', 'N/A'))))
     
     if st.button(f"Delete {index + 1}"):
         delete_question(question['id'])

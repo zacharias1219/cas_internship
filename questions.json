@@ -77,6 +77,36 @@
                 "First came the plants then the Animals like Dinosaurs and then came the mammals."
             ],
             "path": "speakOutLoud"
+        },
+        {
+            "id": 9,
+            "type": "textQuiz",
+            "questions": [
+                {
+                    "question": "What is the capital of France?",
+                    "correct_answer": "Paris"
+                },
+                {
+                    "question": "What is 2 + 2?",
+                    "correct_answer": "4"
+                }
+            ],
+            "path": "textQuiz"
+        },
+        {
+            "id": 10,
+            "type": "voiceQuiz",
+            "questions": [
+                {
+                    "question": "What is the capital of France?",
+                    "correct_answer": "Paris"
+                },
+                {
+                    "question": "What is 2 + 2?",
+                    "correct_answer": "4"
+                }
+            ],
+            "path": "voiceQuiz"
         }
     ]
 }
