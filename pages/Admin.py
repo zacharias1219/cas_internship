@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "speakOutLoud"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -66,25 +66,13 @@ if question_type == "video":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "botTalk":
-    phrases = st.sidebar.text_area("Phrases (comma separated)(Only Two)")
+    phrases = st.sidebar.text_area("Phrases (comma separated) (Only Two)")
     if st.sidebar.button("Add Question"):
         phrases_list = [phrase.strip() for phrase in phrases.split(',')]
         new_question = {
             "type": "botTalk",
             "phrases": phrases_list,
             "path": "botTalk"
-        }
-        add_question(new_question)
-        st.sidebar.success("Question added successfully!")
-
-elif question_type == "pronunciations":
-    words = st.sidebar.text_area("Words (comma separated) (Only Two)")
-    if st.sidebar.button("Add Question"):
-        words_list = [word.strip() for word in words.split(',')]
-        new_question = {
-            "type": "pronunciations",
-            "words": words_list,
-            "path": "pronunciations"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
@@ -107,7 +95,7 @@ questions = load_questions()["questions"]
 
 for index, question in enumerate(questions):
     st.write(f"{index + 1}. {question['type']} - {question.get('content', 'N/A')}")
-    st.write(question.get('phrases', question.get('words', question.get('sentences', 'N/A'))))
+    st.write(question.get('phrases', question.get('sentences', 'N/A')))
     st.write(question.get('questions', 'N/A'))
     
     if st.button(f"Delete {index + 1}"):

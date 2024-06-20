@@ -23,15 +23,6 @@
         },
         {
             "id": 3,
-            "type": "pronunciations",
-            "words": [
-                "Asterisk",
-                "Hierarchy"
-            ],
-            "path": "pronunciations"
-        },
-        {
-            "id": 4,
             "type": "botTalk",
             "phrases": [
                 "Good morning!",
@@ -40,7 +31,7 @@
             "path": "botTalk"
         },
         {
-            "id": 5,
+            "id": 4,
             "type": "video",
             "content": "https://www.youtube.com/watch?v=0Kvw2BPKjz0",
             "questions": [
@@ -52,7 +43,7 @@
             "path": "video"
         },
         {
-            "id": 6,
+            "id": 5,
             "type": "speakOutLoud",
             "sentences": [
                 "The quick brown fox jumps over the lazy dog.",
@@ -61,16 +52,7 @@
             "path": "speakOutLoud"
         },
         {
-            "id": 7,
-            "type": "pronunciations",
-            "words": [
-                "Phenomenon",
-                "Quintessential"
-            ],
-            "path": "pronunciations"
-        },
-        {
-            "id": 8,
+            "id": 6,
             "type": "speakOutLoud",
             "sentences": [
                 "How much wood would a woodchuck chuck if a woodchuck could chuck wood?",
@@ -79,7 +61,7 @@
             "path": "speakOutLoud"
         },
         {
-            "id": 9,
+            "id": 7,
             "type": "speakOutLoud",
             "sentences": [
                 "Narendra Modi became prime minister of India in 2014. It was a land slide victory for BJP party",
@@ -88,7 +70,7 @@
             "path": "speakOutLoud"
         },
         {
-            "id": 10,
+            "id": 8,
             "type": "speakOutLoud",
             "sentences": [
                 "Theory of evolution by Charles Darwin states that every species took birth from one single cell. This cell was first born thousand of years ago",
@@ -96,6 +78,5 @@
             ],
             "path": "speakOutLoud"
         }
-        
     ]
 }
