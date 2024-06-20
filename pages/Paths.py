@@ -210,7 +210,7 @@ else:
 # Always display the Next button
 if st.button("Next"):
     next_step()
-    st.experimental_rerun()
+    st.rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""

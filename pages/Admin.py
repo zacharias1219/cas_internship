@@ -133,12 +133,12 @@ for index, question in enumerate(questions):
     
     if st.button(f"Delete {index + 1}"):
         delete_question(question['id'])
-        st.experimental_rerun()
+        st.rerun()
     
     if st.button(f"Move Up {index + 1}"):
         move_question_up(index)
-        st.experimental_rerun()
+        st.rerun()
     
     if st.button(f"Move Down {index + 1}"):
         move_question_down(index)
-        st.experimental_rerun()
+        st.rerun()
