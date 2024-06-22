@@ -5,7 +5,7 @@ import tempfile
 import string
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
-from utils import speech_to_text, text_to_speech, get_answer  # Ensure get_answer is properly defined in your utils
+from utils import speech_to_text, text_to_speech, get_answer
 from streamlit_float import float_init
 from fuzzywuzzy import fuzz
 import difflib
@@ -152,7 +152,7 @@ def process_bot_audio_response(audio_data, data, question_number):
     st.write("You Said: " + transcription)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
-
+    
     # Generate bot response
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'])
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
