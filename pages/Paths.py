@@ -8,6 +8,7 @@ from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer
 from fuzzywuzzy import fuzz
 import difflib
+from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -121,6 +122,8 @@ def bot_talk_template(data, question_number):
             "key_counter": 0,
             "status": "waiting for you to speak (click the button)"
         }
+        st.session_state.timer_start = datetime.now()
+        st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
@@ -128,6 +131,14 @@ def bot_talk_template(data, question_number):
             st.write(f"🧑 You: {message['content']}")
         else:
             st.write(f"🤖 Bot: {message['content']}")
+
+    # Check if time is up
+    current_time = datetime.now()
+    time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
+    if time_remaining.total_seconds() <= 0:
+        st.write("Time's up!")
+        st.write("Thank you for speaking with me. You can move on.")
+        return
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
