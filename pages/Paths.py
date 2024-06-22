@@ -6,15 +6,11 @@ import string
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer
-from streamlit_float import float_init
 from fuzzywuzzy import fuzz
 import difflib
 
 # Load environment variables
 load_dotenv()
-
-# Float feature initialization
-float_init()
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -46,7 +42,6 @@ def highlight_errors(user_response, correct_answer):
             highlighted_user_response.append(f"<span style='color: red; text-decoration: underline;'>{user_response[i1:i2]}</span>")
         elif tag == 'insert':
             highlighted_user_response.append(f"<span style='color: red; text-decoration: underline;'>{correct_answer[j1:j2]}</span>")
-
     return ''.join(highlighted_user_response)
 
 # Function to handle audio response
@@ -75,7 +70,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
-            if similarity_score >= 90:
+            if fuzz.ratio(normalized_transcription, normalized_correct_answer) >= 90:
                 st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
@@ -106,7 +101,7 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
-            if similarity_score >= 90:
+            if fuzz.ratio(normalized_user_response, normalized_correct_answer) >= 90:
                 st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
@@ -149,17 +144,16 @@ def process_bot_audio_response(audio_data, data, question_number):
         audio_file_path = audio_file.name
 
     transcription = speech_to_text(audio_file_path)
-    st.write("You Said: " + transcription)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
     
-    # Generate bot response
-    assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'])
+    system_prompt = "You are an English coach. Continue the conversation based on the user's input."
+    assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     text_to_speech(assistant_response)
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
-    st.rerun()
+    st.experimental_rerun()
 
 # Template functions
 def video_template(data, question_number):
@@ -239,7 +233,7 @@ else:
 # Always display the Next button
 if st.button("Next"):
     next_step()
-    st.rerun()
+    st.experimental_rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
