@@ -158,7 +158,7 @@ def process_bot_audio_response(audio_data, data, question_number):
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
     
-    system_prompt = "Continue the conversation based on the user's input."
+    system_prompt = "Continue the conversation based on the user's input. Make it interactive, but stick to one question at a time. Also you can ask on something specific that they answered(not always though)"
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     text_to_speech(assistant_response)
