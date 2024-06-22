@@ -5,7 +5,7 @@ import tempfile
 import string
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
-from utils import speech_to_text, text_to_speech
+from utils import speech_to_text, text_to_speech, get_answer  # Ensure get_answer is properly defined in your utils
 from streamlit_float import float_init
 from fuzzywuzzy import fuzz
 import difflib
@@ -56,7 +56,7 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
             audio_file_path = audio_file.name
-        
+
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
         normalized_correct_answer = normalize_text(correct_answer)
@@ -66,21 +66,23 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False):
 
         if check_partial:
             if contains_phrase(normalized_transcription, normalized_correct_answer):
+                st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
-            if percentage_correct >= 90:  # Using a threshold for similarity
+            if similarity_score >= 90:
+                st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
 
 # Function to handle text response
@@ -95,63 +97,71 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
 
         if check_partial:
             if contains_phrase(normalized_user_response, normalized_correct_answer):
+                st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
-            if percentage_correct >= 90:  # Using a threshold for similarity
+            if similarity_score >= 90:
+                st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
                 highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
-                st.error(f"Incorrect answer, please try again. (Similarity: {percentage_correct}%)")
+                st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
 
-# Function to handle bot conversation
-def bot_conversation(data, question_number):
+# Bot Talk Template
+def bot_talk_template(data, question_number):
     st.write(f"Question {question_number}: {data['phrases']}")
-    conversation_history = [{"role": "system", "content": f"You are an English coach. Continue the conversation on the topic '{data['phrases']}'."}]
-    key_counter = 0
 
     if "bot_convo_state" not in st.session_state:
-        st.session_state.bot_convo_state = {"status": "waiting for you to speak (click the button)", "conversation_history": conversation_history}
-    
-    st.write(f"Status: {st.session_state.bot_convo_state['status']}")
-    key_counter += 1
-    audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{key_counter}", pause_threshold=2.5, icon_size="2x")
-    
+        st.session_state.bot_convo_state = {
+            "conversation_history": [{"role": "assistant", "content": data['phrases']}],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+
+    # Display conversation history
+    for message in st.session_state.bot_convo_state['conversation_history']:
+        if message['role'] == 'user':
+            st.write(f"You: {message['content']}")
+        else:
+            st.write(f"Bot: {message['content']}")
+
+    # Record audio response
+    audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
+
+    # Process the recorded audio response
     if audio_data:
         st.session_state.bot_convo_state['status'] = "listening..."
-        st.experimental_rerun()
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-            audio_file.write(audio_data)
-            audio_file_path = audio_file.name
+        st.session_state.bot_convo_state['key_counter'] += 1
+        process_bot_audio_response(audio_data, data, question_number)
 
-        transcription = speech_to_text(audio_file_path)
-        st.write("You Said: " + transcription)
-        st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
+def process_bot_audio_response(audio_data, data, question_number):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+        audio_file.write(audio_data)
+        audio_file_path = audio_file.name
 
-        st.session_state.bot_convo_state['status'] = "analyzing..."
-        st.experimental_rerun()
-        
-        follow_up_question = "Can you tell me more?"
-        st.write("Bot: " + follow_up_question)
-        st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": follow_up_question})
-        text_to_speech(follow_up_question)
+    transcription = speech_to_text(audio_file_path)
+    st.write("You Said: " + transcription)
+    st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
+    st.session_state.bot_convo_state['status'] = "analyzing..."
 
-        st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
-        st.experimental_rerun()
+    # Generate bot response
+    assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'])
+    st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
+    text_to_speech(assistant_response)
 
-def bot_talk_template(data, question_number):
-    bot_conversation(data, question_number)
+    st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
+    st.rerun()
 
-# Template functions for other types of questions remain unchanged
+# Template functions
 def video_template(data, question_number):
     st.write(f"Question {question_number}: Video")
     st.video(data['content'])
@@ -167,17 +177,17 @@ def speak_out_loud_template(data, question_number):
         handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}")
         handle_text_response(sentence, sentence, key=f"speakOutLoud_text_{data['id']}_{i}")
 
-def text_quiz_template(data, question_number):
-    st.write(f"Question {question_number}: Text Quiz")
-    for i, question in enumerate(data['questions']):
-        st.write(question['question'])
-        handle_text_response(question['question'], question['correct_answer'], key=f"text_quiz_{data['id']}_{i}")
-
 def voice_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Voice Quiz")
     for i, question in enumerate(data['questions']):
         st.write(question['question'])
-        handle_audio_response(question['question'], question['correct_answer'], key=f"voice_quiz_{data['id']}_{i}")
+        handle_audio_response(question['question'], question['correct_answer'], key=f"voiceQuiz_audio_{data['id']}_{i}")
+
+def text_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Text Quiz")
+    for i, question in enumerate(data['questions']):
+        st.write(question['question'])
+        handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}")
 
 # Initialize session state
 def initialize_session_state():
@@ -229,7 +239,7 @@ else:
 # Always display the Next button
 if st.button("Next"):
     next_step()
-    st.experimental_rerun()
+    st.rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
