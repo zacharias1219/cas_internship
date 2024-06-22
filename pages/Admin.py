@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "speakOutLoud", "textQuiz", "voiceQuiz"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -66,19 +66,32 @@ if question_type == "video":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "botTalk":
-    phrases = st.sidebar.text_area("Phrases (comma separated) (Only Two)")
+    phrase = st.sidebar.text_input("Initial Prompt")
+    time_limit = st.sidebar.number_input("Duration (minutes)", min_value=1, max_value=60, value=3)
     if st.sidebar.button("Add Question"):
-        phrases_list = [phrase.strip() for phrase in phrases.split(',')]
         new_question = {
             "type": "botTalk",
-            "phrases": phrases_list,
-            "path": "botTalk"
+            "phrases": phrase,
+            "path": "botTalk",
+            "time": time_limit
+        }
+        add_question(new_question)
+        st.sidebar.success("Question added successfully!")
+
+elif question_type == "pronunciations":
+    words = st.sidebar.text_area("Words (comma separated)")
+    if st.sidebar.button("Add Question"):
+        words_list = [word.strip() for word in words.split(',')]
+        new_question = {
+            "type": "pronunciations",
+            "words": words_list,
+            "path": "pronunciations"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "speakOutLoud":
-    sentences = st.sidebar.text_area("Sentences (comma separated) (Only Two)")
+    sentences = st.sidebar.text_area("Sentences (comma separated)")
     if st.sidebar.button("Add Question"):
         sentences_list = [sentence.strip() for sentence in sentences.split(',')]
         new_question = {
@@ -90,16 +103,16 @@ elif question_type == "speakOutLoud":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "textQuiz":
-    quiz_question1 = st.sidebar.text_input("Quiz Question 1")
-    correct_answer1 = st.sidebar.text_input("Correct Answer 1")
-    quiz_question2 = st.sidebar.text_input("Quiz Question 2")
-    correct_answer2 = st.sidebar.text_input("Correct Answer 2")
+    question_1 = st.sidebar.text_input("Question 1")
+    answer_1 = st.sidebar.text_input("Answer 1")
+    question_2 = st.sidebar.text_input("Question 2")
+    answer_2 = st.sidebar.text_input("Answer 2")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "textQuiz",
             "questions": [
-                {"question": quiz_question1, "correct_answer": correct_answer1},
-                {"question": quiz_question2, "correct_answer": correct_answer2}
+                {"question": question_1, "correct_answer": answer_1},
+                {"question": question_2, "correct_answer": answer_2}
             ],
             "path": "textQuiz"
         }
@@ -107,16 +120,16 @@ elif question_type == "textQuiz":
         st.sidebar.success("Question added successfully!")
 
 elif question_type == "voiceQuiz":
-    quiz_question1 = st.sidebar.text_input("Quiz Question 1")
-    correct_answer1 = st.sidebar.text_input("Correct Answer 1")
-    quiz_question2 = st.sidebar.text_input("Quiz Question 2")
-    correct_answer2 = st.sidebar.text_input("Correct Answer 2")
+    question_1 = st.sidebar.text_input("Question 1")
+    answer_1 = st.sidebar.text_input("Answer 1")
+    question_2 = st.sidebar.text_input("Question 2")
+    answer_2 = st.sidebar.text_input("Answer 2")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "voiceQuiz",
             "questions": [
-                {"question": quiz_question1, "correct_answer": correct_answer1},
-                {"question": quiz_question2, "correct_answer": correct_answer2}
+                {"question": question_1, "correct_answer": answer_1},
+                {"question": question_2, "correct_answer": answer_2}
             ],
             "path": "voiceQuiz"
         }
@@ -129,16 +142,17 @@ questions = load_questions()["questions"]
 
 for index, question in enumerate(questions):
     st.write(f"{index + 1}. {question['type']} - {question.get('content', 'N/A')}")
-    st.write(question.get('phrases', question.get('sentences', question.get('questions', 'N/A'))))
+    st.write(question.get('phrases', question.get('words', question.get('sentences', 'N/A'))))
+    st.write(question.get('questions', 'N/A'))
     
     if st.button(f"Delete {index + 1}"):
         delete_question(question['id'])
-        st.rerun()
+        st.experimental_rerun()
     
     if st.button(f"Move Up {index + 1}"):
         move_question_up(index)
-        st.rerun()
+        st.experimental_rerun()
     
     if st.button(f"Move Down {index + 1}"):
         move_question_down(index)
-        st.rerun()
+        st.experimental_rerun()
