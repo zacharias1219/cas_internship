@@ -125,9 +125,9 @@ def bot_talk_template(data, question_number):
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
-            st.write(f"You: {message['content']}")
+            st.write(f"🧑 You: {message['content']}")
         else:
-            st.write(f"Bot: {message['content']}")
+            st.write(f"🤖 Bot: {message['content']}")
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
@@ -147,7 +147,7 @@ def process_bot_audio_response(audio_data, data, question_number):
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
     
-    system_prompt = "You are an English coach. Continue the conversation based on the user's input."
+    system_prompt = "Continue the conversation based on the user's input."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     text_to_speech(assistant_response)
