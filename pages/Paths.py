@@ -114,7 +114,10 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False):
 
 # Bot Talk Template
 def bot_talk_template(data, question_number):
-    st.write(f"Question {question_number}: {data['phrases']}")
+    question = data['phrases']
+    st.write(f"🤖 Bot: {question}")
+    audio_response_path = text_to_speech(question)
+    st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
@@ -125,9 +128,6 @@ def bot_talk_template(data, question_number):
         st.session_state.timer_start = datetime.now()
         st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
         
-        # TTS for the initial question
-        audio_response_path = text_to_speech(data['phrases'])
-        st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
