@@ -127,9 +127,7 @@ def bot_talk_template(data, question_number):
         
         # TTS for the initial question
         audio_response_path = text_to_speech(data['phrases'])
-        with open(audio_response_path, "rb") as audio_file:
-            audio_bytes = audio_file.read()
-            st.audio(audio_bytes, format="audio/mp3")
+        st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
@@ -164,15 +162,13 @@ def process_bot_audio_response(audio_data, data, question_number):
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
     
-    system_prompt = "Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also, you can ask about something specific that they answered (not always though). Most importantly, keep your responce short, maximum two sentences."
+    system_prompt = "Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also, you can ask about something specific that they answered (not always though). Most importantly, keep your response short, maximum two sentences."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     
     # Text-to-Speech for bot response
     audio_response_path = text_to_speech(assistant_response)
-    with open(audio_response_path, "rb") as audio_file:
-        audio_bytes = audio_file.read()
-        st.audio(audio_bytes, format="audio/mp3")
+    st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
@@ -199,9 +195,7 @@ def voice_quiz_template(data, question_number):
         st.write(question['question'])
         # TTS for the initial question
         audio_response_path = text_to_speech(question['question'])
-        with open(audio_response_path, "rb") as audio_file:
-            audio_bytes = audio_file.read()
-            st.audio(audio_bytes, format="audio/mp3")
+        st.audio(audio_response_path, format="audio/mp3", start_time=0)
         handle_audio_response(question['question'], question['correct_answer'], key=f"voiceQuiz_audio_{data['id']}_{i}")
 
 def text_quiz_template(data, question_number):

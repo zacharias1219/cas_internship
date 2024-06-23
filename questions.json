@@ -20,6 +20,21 @@
             "time": 3
         },
         {
+            "id": 10,
+            "type": "voiceQuiz",
+            "questions": [
+                {
+                    "question": "What is the capital of France?",
+                    "correct_answer": "Paris"
+                },
+                {
+                    "question": "What is 2 + 2?",
+                    "correct_answer": "4"
+                }
+            ],
+            "path": "voiceQuiz"
+        },
+        {
             "id": 3,
             "type": "botTalk",
             "phrases": "Do you have any hobbies?",
@@ -88,21 +103,6 @@
                 }
             ],
             "path": "textQuiz"
-        },
-        {
-            "id": 10,
-            "type": "voiceQuiz",
-            "questions": [
-                {
-                    "question": "What is the capital of France?",
-                    "correct_answer": "Paris"
-                },
-                {
-                    "question": "What is 2 + 2?",
-                    "correct_answer": "4"
-                }
-            ],
-            "path": "voiceQuiz"
         }
     ]
 }
