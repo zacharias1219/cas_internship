@@ -137,7 +137,6 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
 # Bot Talk Template
 def bot_talk_template(data, question_number):
     question = data['phrases']
-    
     st.write(f"🤖 Bot: {question}")
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
@@ -166,7 +165,7 @@ def bot_talk_template(data, question_number):
     if time_remaining.total_seconds() <= 0:
         st.write("Time's up!")
         st.write("Thank you for speaking with me. You can move on.")
-        return
+        return st.rerun()
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
