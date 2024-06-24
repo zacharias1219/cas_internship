@@ -165,7 +165,7 @@ def bot_talk_template(data, question_number):
     if time_remaining.total_seconds() <= 0:
         st.write("Time's up!")
         st.write("Thank you for speaking with me. You can move on.")
-        return st.rerun()
+        return
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
