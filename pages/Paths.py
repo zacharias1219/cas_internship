@@ -165,6 +165,13 @@ def bot_talk_template(data, question_number):
     if time_remaining.total_seconds() <= 0:
         st.write("Time's up!")
         st.write("Thank you for speaking with me. You can move on.")
+        
+        # Clear the conversation history for the next session
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
         return
 
     # Record audio response
