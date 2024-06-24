@@ -163,7 +163,6 @@ def bot_talk_template(data, question_number):
     current_time = datetime.now()
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     if time_remaining.total_seconds() <= 0:
-        st.subheader("That's it")
         st.session_state.bot_convo_state = {
             "conversation_history": [],
             "key_counter": 0,
