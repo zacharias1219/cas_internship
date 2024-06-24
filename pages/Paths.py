@@ -156,6 +156,8 @@ def bot_talk_template(data, question_number):
             st.write(f"🧑 You: {message['content']}")
         elif message['role'] == 'assistant' and message['content'] != data['phrases']:
             st.write(f"🤖 Bot: {message['content']}")
+            audio_response_path = text_to_speech(message['content'])
+            st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     # Check if time is up
     current_time = datetime.now()
