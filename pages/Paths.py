@@ -136,27 +136,25 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
 
 # Bot Talk Template
 def bot_talk_template(data, question_number):
-    # Reset bot conversation state at the start
-    st.session_state.bot_convo_state = {
-        "conversation_history": [],
-        "key_counter": 0,
-        "status": "waiting for you to speak (click the button)"
-    }
-    st.session_state.timer_start = datetime.now()
-    st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
-
     question = data['phrases']
     st.write(f"🤖 Bot: {question}")
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
 
-    st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": question})
+    if "bot_convo_state" not in st.session_state:
+        st.session_state.bot_convo_state = {
+            "conversation_history": [{"role": "assistant", "content": data['phrases']}],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+        st.session_state.timer_start = datetime.now()
+        st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
             st.write(f"🧑 You: {message['content']}")
-        elif message['role'] == 'assistant' and message['content'] != question:
+        elif message['role'] == 'assistant' and message['content'] != data['phrases']:
             st.write(f"🤖 Bot: {message['content']}")
             audio_response_path = text_to_speech(message['content'])
             autoplay_audio(audio_response_path)
