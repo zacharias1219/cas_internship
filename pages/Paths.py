@@ -169,11 +169,12 @@ def bot_talk_template(data, question_number):
         audio_response_path = text_to_speech(last_message)
         autoplay_audio(audio_response_path)
         # Clear the conversation history for the next session
-        st.session_state.bot_convo_state = {
-            "conversation_history": [],
-            "key_counter": 0,
-            "status": "waiting for you to speak (click the button)"
-        }
+        if last_message:
+            st.session_state.bot_convo_state = {
+                "conversation_history": [],
+                "key_counter": 0,
+                "status": "waiting for you to speak (click the button)"
+            }
         return
 
     # Record audio response
