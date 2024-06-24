@@ -175,7 +175,6 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_convo_state['status'] = "listening..."
         st.session_state.bot_convo_state['key_counter'] += 1
         process_bot_audio_response(audio_data, data, question_number)
-    st.rerun()
 
 def process_bot_audio_response(audio_data, data, question_number):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
