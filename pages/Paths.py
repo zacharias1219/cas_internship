@@ -137,6 +137,11 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
 # Bot Talk Template
 def bot_talk_template(data, question_number):
     question = data['phrases']
+    st.session_state.bot_convo_state = {
+            "conversation_history": [{"role": "assistant", "content": question}],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
     st.write(f"🤖 Bot: {question}")
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
@@ -175,7 +180,7 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_convo_state['status'] = "listening..."
         st.session_state.bot_convo_state['key_counter'] += 1
         process_bot_audio_response(audio_data, data, question_number)
-    st.rerun()
+
 
 def process_bot_audio_response(audio_data, data, question_number):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
