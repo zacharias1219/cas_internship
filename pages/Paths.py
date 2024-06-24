@@ -150,12 +150,6 @@ def bot_talk_template(data, question_number):
         st.session_state.timer_start = datetime.now()
         st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
-    # Display remaining time
-    current_time = datetime.now()
-    time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
-    minutes, seconds = divmod(time_remaining.total_seconds(), 60)
-    st.write(f"Time remaining: {int(minutes):02}:{int(seconds):02}")
-
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
@@ -166,11 +160,9 @@ def bot_talk_template(data, question_number):
             autoplay_audio(audio_response_path)
 
     # Check if time is up
+    current_time = datetime.now()
+    time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     if time_remaining.total_seconds() <= 0:
-        st.write("Time's up!")
-        st.write("Thank you for speaking with me. You can move on.")
-        
-        # Clear the conversation history for the next session
         st.session_state.bot_convo_state = {
             "conversation_history": [],
             "key_counter": 0,
