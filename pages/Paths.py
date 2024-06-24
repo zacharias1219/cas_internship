@@ -164,6 +164,11 @@ def bot_talk_template(data, question_number):
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     if time_remaining.total_seconds() <= 0:
         st.write("You can move onto the next part.")
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
     if time_remaining.total_seconds() <= 0:
         st.session_state.bot_convo_state = {
             "conversation_history": [],
