@@ -163,18 +163,12 @@ def bot_talk_template(data, question_number):
     current_time = datetime.now()
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     if time_remaining.total_seconds() <= 0:
-        last_message = """Time's up!
-        Thank you for speaking with me. You can move on."""
-        st.write(f"🤖 Bot: {last_message}")
-        audio_response_path = text_to_speech(last_message)
-        autoplay_audio(audio_response_path)
-        # Clear the conversation history for the next session
-        if last_message:
-            st.session_state.bot_convo_state = {
-                "conversation_history": [],
-                "key_counter": 0,
-                "status": "waiting for you to speak (click the button)"
-            }
+        bye_section()
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
         return
 
     # Record audio response
@@ -186,7 +180,8 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_convo_state['key_counter'] += 1
         process_bot_audio_response(audio_data, data, question_number)
 
-
+def bye_section():
+    st.write("You can move onto the next part.")
 def process_bot_audio_response(audio_data, data, question_number):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
         audio_file.write(audio_data)
