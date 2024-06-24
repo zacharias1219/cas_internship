@@ -141,14 +141,14 @@ def bot_talk_template(data, question_number):
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
 
-    # Reset bot conversation state at the start
-    st.session_state.bot_convo_state = {
-        "conversation_history": [{"role": "assistant", "content": data['phrases']}],
-        "key_counter": 0,
-        "status": "waiting for you to speak (click the button)"
-    }
-    st.session_state.timer_start = datetime.now()
-    st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
+    if "bot_convo_state" not in st.session_state:
+        st.session_state.bot_convo_state = {
+            "conversation_history": [{"role": "assistant", "content": data['phrases']}],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+        st.session_state.timer_start = datetime.now()
+        st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
