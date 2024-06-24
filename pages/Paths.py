@@ -5,7 +5,7 @@ import tempfile
 import string
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
-from utils import speech_to_text, text_to_speech, get_answer
+from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 from fuzzywuzzy import fuzz
 import difflib
 from datetime import datetime, timedelta
@@ -139,11 +139,11 @@ def bot_talk_template(data, question_number):
     question = data['phrases']
     st.write(f"🤖 Bot: {question}")
     audio_response_path = text_to_speech(question)
-    st.audio(audio_response_path, format="audio/mp3", start_time=0)
+    autoplay_audio(audio_response_path)
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
-            "conversation_history": [{"role": "assistant", "content": question}],
+            "conversation_history": [{"role": "assistant", "content": data['phrases']}],
             "key_counter": 0,
             "status": "waiting for you to speak (click the button)"
         }
@@ -151,13 +151,13 @@ def bot_talk_template(data, question_number):
         st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
     # Display conversation history
-    for message in st.session_state.bot_convo_state['conversation_history'][1:]:
+    for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
             st.write(f"🧑 You: {message['content']}")
         elif message['role'] == 'assistant' and message['content'] != data['phrases']:
             st.write(f"🤖 Bot: {message['content']}")
             audio_response_path = text_to_speech(message['content'])
-            st.audio(audio_response_path, format="audio/mp3", start_time=0)
+            autoplay_audio(audio_response_path)
 
     # Check if time is up
     current_time = datetime.now()
@@ -191,7 +191,7 @@ def process_bot_audio_response(audio_data, data, question_number):
     
     # Text-to-Speech for bot response
     audio_response_path = text_to_speech(assistant_response)
-    st.audio(audio_response_path, format="audio/mp3", start_time=0)
+    autoplay_audio(audio_response_path)
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
