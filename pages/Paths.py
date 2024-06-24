@@ -163,9 +163,10 @@ def bot_talk_template(data, question_number):
     current_time = datetime.now()
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     if time_remaining.total_seconds() <= 0:
-        last_message = "Time's up!/nThank you for speaking with me. You can move on."
+        last_message = """Time's up!
+        Thank you for speaking with me. You can move on."""
         st.write(f"🤖 Bot: {last_message}")
-        audio_response_path = text_to_speech(message['content'])
+        audio_response_path = text_to_speech(last_message)
         autoplay_audio(audio_response_path)
         # Clear the conversation history for the next session
         st.session_state.bot_convo_state = {
