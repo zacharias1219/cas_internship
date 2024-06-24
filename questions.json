@@ -17,7 +17,7 @@
             "type": "botTalk",
             "phrases": "Tell me about yourself.",
             "path": "botTalk",
-            "time": 3
+            "time": 1
         },
         {
             "id": 10,
