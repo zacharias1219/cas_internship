@@ -181,7 +181,7 @@ def bot_talk_template(data, question_number):
             "status": "waiting for you to speak (click the button)"
         }
         st.session_state.bot_talk_reset = True
-        st.rerun()
+        st.experimental_rerun()
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
