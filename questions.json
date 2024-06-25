@@ -29,7 +29,7 @@
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": "4"
+                    "correct_answer": ["4","Four"]
                 }
             ],
             "path": "voiceQuiz"
@@ -99,7 +99,7 @@
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": "4"
+                    "correct_answer": ["4","Four"]
                 }
             ],
             "path": "textQuiz"
