@@ -149,6 +149,7 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_talk_reset = False
 
     question = data['phrases']
+    additional_info = data.get('additional', '')  # Get the additional information if available
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
@@ -201,9 +202,9 @@ def bot_talk_template(data, question_number):
     if audio_data:
         st.session_state.bot_convo_state['status'] = "listening..."
         st.session_state.bot_convo_state['key_counter'] += 1
-        process_bot_audio_response(audio_data, data, question_number)
+        process_bot_audio_response(audio_data, data, question_number, additional_info)
 
-def process_bot_audio_response(audio_data, data, question_number):
+def process_bot_audio_response(audio_data, data, question_number, additional_info):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
         audio_file.write(audio_data)
         audio_file_path = audio_file.name
@@ -212,7 +213,7 @@ def process_bot_audio_response(audio_data, data, question_number):
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
 
-    system_prompt = "Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also, you can ask about something specific that they answered (not always though). Most importantly, keep your response short, maximum two sentences."
+    system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also, you can ask about something specific that they answered (not always though). Most importantly, keep your response short, maximum two sentences. Also judge the used based on this {additional_info}, and also just give them a score based on how well they stick to it(out of 1100)"
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     
