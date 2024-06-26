@@ -140,7 +140,7 @@ def bot_talk_template(data, question_number):
     if 'bot_talk_reset' not in st.session_state:
         st.session_state.bot_talk_reset = False
 
-    if st.session_state.bot_talk_reset or "bot_convo_state" not in st.session_state:
+    if st.session_state.bot_talk_reset:
         st.session_state.bot_convo_state = {
             "conversation_history": [],
             "key_counter": 0,
@@ -149,16 +149,14 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_talk_reset = False
 
     question = data['phrases']
+    if not st.session_state.bot_convo_state["conversation_history"]:
+        st.session_state.bot_convo_state["conversation_history"].append({"role": "assistant", "content": question})
+
     st.write(f"🤖 Bot: {question}")
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
 
-    if "bot_convo_state" not in st.session_state or "timer_start" not in st.session_state or "timer_duration" not in st.session_state:
-        st.session_state.bot_convo_state = {
-            "conversation_history": [{"role": "assistant", "content": data['phrases']}],
-            "key_counter": 0,
-            "status": "waiting for you to speak (click the button)"
-        }
+    if "timer_start" not in st.session_state or "timer_duration" not in st.session_state:
         st.session_state.timer_start = datetime.now()
         st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
 
@@ -186,6 +184,7 @@ def bot_talk_template(data, question_number):
         }
         st.session_state.bot_talk_reset = True
         st.error("Time's up! Please try again.")
+        return
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
