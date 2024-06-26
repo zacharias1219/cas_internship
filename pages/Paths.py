@@ -150,6 +150,7 @@ def bot_talk_template(data, question_number):
 
     question = data['phrases']
     additional_info = data.get('additional')
+    st.markdown(additional_info)
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
