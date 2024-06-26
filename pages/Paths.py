@@ -202,6 +202,7 @@ def bot_talk_template(data, question_number):
     if audio_data:
         st.session_state.bot_convo_state['status'] = "listening..."
         st.session_state.bot_convo_state['key_counter'] += 1
+        st.markdown(additional_info)
         process_bot_audio_response(audio_data, data, question_number, additional_info)
 
 def process_bot_audio_response(audio_data, data, question_number, additional_info):
