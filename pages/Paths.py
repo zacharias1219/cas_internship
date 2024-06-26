@@ -220,6 +220,7 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     # Text-to-Speech for bot response
     audio_response_path = text_to_speech(assistant_response)
     autoplay_audio(audio_response_path)
+    st.audio(audio_response_path, format="audio/mp3", start_time=0)
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
