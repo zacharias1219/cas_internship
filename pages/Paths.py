@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import string
+import time
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
@@ -152,7 +153,7 @@ def bot_talk_template(data, question_number):
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
 
-    if "bot_convo_state" not in st.session_state:
+    if "bot_convo_state" not in st.session_state or "timer_start" not in st.session_state or "timer_duration" not in st.session_state:
         st.session_state.bot_convo_state = {
             "conversation_history": [{"role": "assistant", "content": data['phrases']}],
             "key_counter": 0,
@@ -164,6 +165,9 @@ def bot_talk_template(data, question_number):
     # Display remaining time
     current_time = datetime.now()
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
+    minutes, seconds = divmod(time_remaining.total_seconds(), 60)
+    st.write(f"Time remaining: {int(minutes):02}:{int(seconds):02}")
+    time.sleep(1)
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
