@@ -68,12 +68,14 @@ if question_type == "video":
 elif question_type == "botTalk":
     phrase = st.sidebar.text_input("Initial Prompt")
     time_limit = st.sidebar.number_input("Duration (minutes)", min_value=1, max_value=60, value=3)
+    addition = st.sidebar.text_input("Additional Information")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "botTalk",
             "phrases": phrase,
             "path": "botTalk",
-            "time": time_limit
+            "time": time_limit,
+            "addition": addition
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
