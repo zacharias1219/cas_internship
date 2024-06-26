@@ -25,11 +25,13 @@
             "questions": [
                 {
                     "question": "What is the capital of France?",
-                    "correct_answer": "Paris"
+                    "correct_answer": "Paris",
+                    "hint": "The capital of France starts with P"
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": ["4","Four"]
+                    "correct_answer": ["4","Four"],
+                    "hint": "The answer is 4"
                 }
             ],
             "path": "voiceQuiz"
@@ -95,11 +97,13 @@
             "questions": [
                 {
                     "question": "What is the capital of France?",
-                    "correct_answer": "Paris"
+                    "correct_answer": "Paris",
+                    "hint": "The capital of France starts with P"
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": ["4","Four"]
+                    "correct_answer": ["4","Four"],
+                    "hint": "The answer is 4"
                 }
             ],
             "path": "textQuiz"

@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import string
+import time
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
@@ -181,8 +182,7 @@ def bot_talk_template(data, question_number):
             "status": "waiting for you to speak (click the button)"
         }
         st.session_state.bot_talk_reset = True
-
-        st.experimental_rerun()
+        st.error("Time's up! Please try again.")
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
@@ -232,7 +232,7 @@ def speak_out_loud_template(data, question_number):
 def voice_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Voice Quiz")
     for i, question in enumerate(data['questions']):
-        st.write(question['question'])
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True,help=question.get("hint",""))
         # TTS for the initial question
         audio_response_path = text_to_speech(question['question'])
         st.audio(audio_response_path, format="audio/mp3", start_time=0)
@@ -241,7 +241,7 @@ def voice_quiz_template(data, question_number):
 def text_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Text Quiz")
     for i, question in enumerate(data['questions']):
-        st.write(question['question'])
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True,help=question.get("hint",""))
         handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}", type_check='contains')
 
 # Initialize session state
