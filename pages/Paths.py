@@ -149,7 +149,7 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_talk_reset = False
 
     question = data['phrases']
-    additional_info = data.get('additional', '')  # Get the additional information if available
+    additional_info = data.get('additional')
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
@@ -202,7 +202,6 @@ def bot_talk_template(data, question_number):
     if audio_data:
         st.session_state.bot_convo_state['status'] = "listening..."
         st.session_state.bot_convo_state['key_counter'] += 1
-        st.markdown(additional_info)
         process_bot_audio_response(audio_data, data, question_number, additional_info)
 
 def process_bot_audio_response(audio_data, data, question_number, additional_info):
