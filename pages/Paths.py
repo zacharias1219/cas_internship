@@ -149,6 +149,14 @@ def bot_talk_template(data, question_number):
         st.session_state.bot_talk_reset = False
 
     question = data['phrases']
+
+    if "bot_convo_state" not in st.session_state:
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+
     if not st.session_state.bot_convo_state["conversation_history"]:
         st.session_state.bot_convo_state["conversation_history"].append({"role": "assistant", "content": question})
 
@@ -165,7 +173,7 @@ def bot_talk_template(data, question_number):
     time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
     minutes, seconds = divmod(time_remaining.total_seconds(), 60)
     st.write(f"Time remaining: {int(minutes):02}:{int(seconds):02}")
-    time.sleep(1)
+
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
@@ -310,4 +318,3 @@ st.markdown("""
 # Create footer container for the microphone
 footer_container = st.container()
 footer_container.float("bottom: 0rem;")
-
