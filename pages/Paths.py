@@ -213,7 +213,7 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
     st.session_state.bot_convo_state['status'] = "analyzing..."
 
-    system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also judge the used on every response based on how well they stik to this format {additional_info}, and also just give them a score based on how well they stick to the format (out of 100). Lastly, you can ask about something specific that they answered (not always though). Most importantly, keep your response short and concise, maximum two sentences."
+    system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Also judge the used on every response based on how well they stik to this format {additional_info}, and also just give them a genuine and unbiased score based on how well they stick to the format (out of 100). Lastly, you can ask about something specific that they answered (not always though). Most importantly, keep your response short and concise, maximum two sentences."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
     
