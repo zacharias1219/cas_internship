@@ -18,7 +18,7 @@
             "phrases": "Tell me about yourself.",
             "path": "botTalk",
             "time": 1,
-            "additional": "It should be in bullet points type format"
+            "additional": "It should be in continuous list type format"
         },
         {
             "id": 10,
