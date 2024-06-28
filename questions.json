@@ -18,7 +18,7 @@
             "phrases": "Tell me about yourself.",
             "path": "botTalk",
             "time": 1,
-            "additional": "It should be in continuous list type format"
+            "additional": "It should be in bullet points."
         },
         {
             "id": 10,
@@ -108,6 +108,18 @@
                 }
             ],
             "path": "textQuiz"
+        },
+        {
+            "id": 11,
+            "type": "pictureTalk",
+            "image_url": "https://example.com/image.jpg",
+            "questions": [
+                {
+                    "question": "Describe what you see in the picture.",
+                    "hint": "Focus on the time of day and the landscape."
+                }
+            ],
+            "path": "pictureTalk"
         }
     ]
 }

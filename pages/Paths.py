@@ -257,6 +257,14 @@ def text_quiz_template(data, question_number):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
         handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}", type_check='contains')
 
+def picture_talk_template(data, question_number):
+    st.write(f"Question {question_number}: Picture Talk")
+    st.image(data['image_url'])
+    for i, question in enumerate(data['questions']):
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+        handle_audio_response(question['question'], question['correct_answer'], key=f"pictureTalk_audio_{data['id']}_{i}", type_check='contains')
+        handle_text_response(question['question'], question['correct_answer'], key=f"pictureTalk_text_{data['id']}_{i}", type_check='contains')
+
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -279,6 +287,8 @@ def render_step(step, question_number):
         text_quiz_template(step, question_number)
     elif step_type == 'voiceQuiz':
         voice_quiz_template(step, question_number)
+    elif step_type == 'pictureTalk':
+        picture_talk_template(step, question_number)
 
 st.title("Interactive Learning Path")
 

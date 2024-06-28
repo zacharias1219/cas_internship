@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz", "pictureTalk"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -68,14 +68,14 @@ if question_type == "video":
 elif question_type == "botTalk":
     phrase = st.sidebar.text_input("Initial Prompt")
     time_limit = st.sidebar.number_input("Duration (minutes)", min_value=1, max_value=60, value=3)
-    addition = st.sidebar.text_input("Additional Information")
+    additional_info = st.sidebar.text_input("Additional Information")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "botTalk",
             "phrases": phrase,
             "path": "botTalk",
             "time": time_limit,
-            "addition": addition
+            "additional": additional_info
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
@@ -107,14 +107,16 @@ elif question_type == "speakOutLoud":
 elif question_type == "textQuiz":
     question_1 = st.sidebar.text_input("Question 1")
     answer_1 = st.sidebar.text_input("Answer 1")
+    hint_1 = st.sidebar.text_input("Hint 1")
     question_2 = st.sidebar.text_input("Question 2")
     answer_2 = st.sidebar.text_input("Answer 2")
+    hint_2 = st.sidebar.text_input("Hint 2")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "textQuiz",
             "questions": [
-                {"question": question_1, "correct_answer": answer_1},
-                {"question": question_2, "correct_answer": answer_2}
+                {"question": question_1, "correct_answer": answer_1, "hint": hint_1},
+                {"question": question_2, "correct_answer": answer_2, "hint": hint_2}
             ],
             "path": "textQuiz"
         }
@@ -124,16 +126,35 @@ elif question_type == "textQuiz":
 elif question_type == "voiceQuiz":
     question_1 = st.sidebar.text_input("Question 1")
     answer_1 = st.sidebar.text_input("Answer 1")
+    hint_1 = st.sidebar.text_input("Hint 1")
     question_2 = st.sidebar.text_input("Question 2")
     answer_2 = st.sidebar.text_input("Answer 2")
+    hint_2 = st.sidebar.text_input("Hint 2")
     if st.sidebar.button("Add Question"):
         new_question = {
             "type": "voiceQuiz",
             "questions": [
-                {"question": question_1, "correct_answer": answer_1},
-                {"question": question_2, "correct_answer": answer_2}
+                {"question": question_1, "correct_answer": answer_1, "hint": hint_1},
+                {"question": question_2, "correct_answer": answer_2, "hint": hint_2}
             ],
             "path": "voiceQuiz"
+        }
+        add_question(new_question)
+        st.sidebar.success("Question added successfully!")
+
+elif question_type == "pictureTalk":
+    image_url = st.sidebar.text_input("Image URL")
+    question_1 = st.sidebar.text_input("Question 1")
+    answer_1 = st.sidebar.text_input("Answer 1")
+    hint_1 = st.sidebar.text_input("Hint 1")
+    if st.sidebar.button("Add Question"):
+        new_question = {
+            "type": "pictureTalk",
+            "image_url": image_url,
+            "questions": [
+                {"question": question_1, "correct_answer": answer_1, "hint": hint_1}
+            ],
+            "path": "pictureTalk"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
