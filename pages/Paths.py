@@ -273,7 +273,7 @@ def picture_talk_template(data, question_number):
         
         for i, question in enumerate(data['questions']):
             answer = question.get("hint", "")
-            analyze_system_prompt = f"You are given a task to analyse a predefined answer {answer} and the user's answer {transcription}, and check wheter the user's answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective, but check how similar they are, if it si similar then say 'Well Done' other wise say 'Try again'."
+            analyze_system_prompt = f"You are given a task to analyse a predefined answer {answer} and the user's answer {transcription}, and check wheter the user's answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective, but check how similar they are. You should only respond as witht the two sentences that I have given you and nothing more: if it is similar then say 'Well Done' other wise say 'Try again'."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
