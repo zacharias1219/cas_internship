@@ -260,10 +260,20 @@ def text_quiz_template(data, question_number):
 def picture_talk_template(data, question_number):
     st.write(f"Question {question_number}: Picture Talk")
     st.image(data['image_url'])
+    help = question.get("hint")
     for i, question in enumerate(data['questions']):
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-        handle_audio_response(question['question'], question['correct_answer'], key=f"pictureTalk_audio_{data['id']}_{i}", type_check='contains')
-        handle_text_response(question['question'], question['correct_answer'], key=f"pictureTalk_text_{data['id']}_{i}", type_check='contains')
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=help)
+    audio_data = audio_recorder(f"Record your response:",pause_threshold=2.5, icon_size="2x")
+    if audio_data:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+
+        transcription = speech_to_text(audio_file_path)
+        analyzing_system_prompt = f"Judge the user's answer: {transcription} by comparing it to this hint {help}. Give them a genuine and honest score based on how well they stick to the format (out of 100). Only score things that obviously need to be scored. For example, if they just say 'bye' then obviously that doesn't need to be scored. If the score is more than 80 then just say 'Well done' otherwise tell them to 'Try again'."
+        assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], analyzing_system_prompt)
+
+        
 
 # Initialize session state
 def initialize_session_state():

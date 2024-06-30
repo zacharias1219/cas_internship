@@ -143,7 +143,7 @@ with col2:
     # Create footer container for the microphone
     footer_container = st.container()
     with footer_container:
-        audio_bytes = audio_recorder()
+        audio_bytes = audio_recorder(pause_threshold=2.5)
 
 with col3:
     # End session button

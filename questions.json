@@ -38,13 +38,6 @@
             "path": "voiceQuiz"
         },
         {
-            "id": 3,
-            "type": "botTalk",
-            "phrases": "Do you have any hobbies?",
-            "path": "botTalk",
-            "time": 3
-        },
-        {
             "id": 4,
             "type": "video",
             "content": "https://www.youtube.com/watch?v=0Kvw2BPKjz0",
@@ -112,11 +105,11 @@
         {
             "id": 11,
             "type": "pictureTalk",
-            "image_url": "https://example.com/image.jpg",
+            "image_url": "https://images.app.goo.gl/ZgzSudZzakKLvr6u7",
             "questions": [
                 {
                     "question": "Describe what you see in the picture.",
-                    "hint": "Focus on the time of day and the landscape."
+                    "hint": "Two children under the tree, beautiful scenary"
                 }
             ],
             "path": "pictureTalk"
