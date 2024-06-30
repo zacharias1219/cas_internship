@@ -272,15 +272,10 @@ def picture_talk_template(data, question_number):
         st.write(f"You Said: {transcription}")
         
         for i, question in enumerate(data['questions']):
-            hint = question.get("hint", "")
-            similarity_score = fuzz.ratio(normalize_text(transcription), normalize_text(hint))
-            
-            if similarity_score >= 80:
-                st.success("Correct answer!")
-                st.session_state[f"audio_correct_{data['id']}_{i}"] = True
-            else:
-                st.error(f"Try again. Similarity score: {similarity_score}")
-                st.session_state[f"audio_correct_{data['id']}_{i}"] = False
+            answer = question.get("hint", "")
+            analyze_system_prompt = f"You are given a task to analyse a predefined answer {answer} and the user's answer {transcription}, and check wheter the user's answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective, but check how similar they are, if it si similar then say 'Well Done' other wise say 'Try again'."
+            the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
+            st.markdown(the_answer)
 
 # Initialize session state
 def initialize_session_state():

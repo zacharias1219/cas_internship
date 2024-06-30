@@ -105,11 +105,11 @@
         {
             "id": 11,
             "type": "pictureTalk",
-            "image_url": "https://images.app.goo.gl/ZgzSudZzakKLvr6u7",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
             "questions": [
                 {
-                    "question": "Describe what you see in the picture.",
-                    "hint": "Two children under the tree, beautiful scenary"
+                    "question": "What are the children doing?",
+                    "hint": "Sitting under the tree"
                 }
             ],
             "path": "pictureTalk"
