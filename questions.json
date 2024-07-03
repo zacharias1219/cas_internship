@@ -104,7 +104,7 @@
         },
         {
             "id": 11,
-            "type": "pictureTalk",
+            "type": "pictureQuiz",
             "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
             "questions": [
                 {
@@ -112,7 +112,7 @@
                     "hint": "Sitting under the tree"
                 }
             ],
-            "path": "pictureTalk"
+            "path": "pictureQuiz"
         }
     ]
 }
