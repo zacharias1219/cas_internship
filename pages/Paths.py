@@ -281,25 +281,29 @@ def picture_description_template(data, question_number):
     st.image(data['image_url'])
     for i, question in enumerate(data['questions']):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True)
-    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
-    if audio_data:
+    
+    # First audio response
+    audio_data_1 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
+    if audio_data_1:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-            audio_file.write(audio_data)
+            audio_file.write(audio_data_1)
             audio_file_path = audio_file.name
 
-        transcription = speech_to_text(audio_file_path)
-        st.write(f"You Said: {transcription}")
+        transcription_1 = speech_to_text(audio_file_path)
+        st.write(f"You Said: {transcription_1}")
         
         st.markdown("Speak a bit more.")
 
-        audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
-        if audio_data:
+        # Second audio response
+        audio_data_2 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_2_{question_number}", pause_threshold=2.5, icon_size="2x")
+        if audio_data_2:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-                audio_file.write(audio_data)
+                audio_file.write(audio_data_2)
                 audio_file_path = audio_file.name
 
-            transcription = speech_to_text(audio_file_path)
-            st.write(f"You Said: {transcription}")
+            transcription_2 = speech_to_text(audio_file_path)
+            st.write(f"You Said: {transcription_2}")
+
 
 # Initialize session state
 def initialize_session_state():
