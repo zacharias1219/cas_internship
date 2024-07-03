@@ -272,7 +272,7 @@ def picture_quiz_template(data, question_number):
         
         for i, question in enumerate(data['questions']):
             answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check wheter the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective, but check how similar they are. You should only respond with the two sentences that I have given you and nothing more regardless of what the answers you got are: if it is similar then say 'Well Done' other wise say 'Try again'."
+            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check wheter the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two sentences that I will give you and nothing more. Those two sentence are: if it is similar then say 'Well Done' other wise say 'Try again'."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
