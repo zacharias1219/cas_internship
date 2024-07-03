@@ -8,9 +8,7 @@ from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
-from fuzzywuzzy import fuzz
 import difflib
-from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -57,39 +55,45 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False, type
 
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
-        normalized_correct_answer = normalize_text(correct_answer)
+        
+        if isinstance(correct_answer, list):
+            normalized_correct_answers = [normalize_text(answer) for answer in correct_answer]
+        else:
+            normalized_correct_answers = [normalize_text(correct_answer)]
+
+        correct_answer_match = any(fuzz.ratio(normalized_transcription, normalized_correct_answer) >= 90 for normalized_correct_answer in normalized_correct_answers)
 
         if type_check == 'contains':
-            if contains_phrase(normalized_transcription, normalized_correct_answer):
+            if any(contains_phrase(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
                 st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(transcription, correct_answer)
+                highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
-            similarity_score = fuzz.ratio(normalized_transcription, normalized_correct_answer)
+            similarity_score = max(fuzz.ratio(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers)
             percentage_correct = similarity_score
 
             if check_partial:
-                if contains_phrase(normalized_transcription, normalized_correct_answer):
+                if any(contains_phrase(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
                     st.write(f"You Said: {transcription}")
                     st.success("Correct answer!")
                     st.session_state[f"audio_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(transcription, correct_answer)
+                    highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"audio_correct_{key}"] = False
             else:
-                if fuzz.ratio(normalized_transcription, normalized_correct_answer) >= 90:
+                if correct_answer_match:
                     st.write(f"You Said: {transcription}")
                     st.success("Correct answer!")
                     st.session_state[f"audio_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(transcription, correct_answer)
+                    highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"audio_correct_{key}"] = False
@@ -99,39 +103,45 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
     user_response = st.text_input("Your answer", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_response = normalize_text(user_response)
-        normalized_correct_answer = normalize_text(correct_answer)
+        
+        if isinstance(correct_answer, list):
+            normalized_correct_answers = [normalize_text(answer) for answer in correct_answer]
+        else:
+            normalized_correct_answers = [normalize_text(correct_answer)]
+
+        correct_answer_match = any(fuzz.ratio(normalized_user_response, normalized_correct_answer) >= 90 for normalized_correct_answer in normalized_correct_answers)
 
         if type_check == 'contains':
-            if contains_phrase(normalized_user_response, normalized_correct_answer):
+            if any(contains_phrase(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
                 st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(user_response, correct_answer)
+                highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
-            similarity_score = fuzz.ratio(normalized_user_response, normalized_correct_answer)
+            similarity_score = max(fuzz.ratio(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers)
             percentage_correct = similarity_score
 
             if check_partial:
-                if contains_phrase(normalized_user_response, normalized_correct_answer):
+                if any(contains_phrase(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
                     st.write(f"You Said: {user_response}")
                     st.success("Correct answer!")
                     st.session_state[f"text_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(user_response, correct_answer)
+                    highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"text_correct_{key}"] = False
             else:
-                if fuzz.ratio(normalized_user_response, normalized_correct_answer) >= 90:
+                if correct_answer_match:
                     st.write(f"You Said: {user_response}")
                     st.success("Correct answer!")
                     st.session_state[f"text_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(user_response, correct_answer)
+                    highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"text_correct_{key}"] = False
@@ -272,7 +282,7 @@ def picture_quiz_template(data, question_number):
         
         for i, question in enumerate(data['questions']):
             answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two sentences that I will give you and nothing more. Those two sentence are: if it is similar then say 'Well Done' otherwise say 'Try again'."
+            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise say 'Try again' and give a single sentence about how it can be better(write the sentence in italics)."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
@@ -314,6 +324,10 @@ initialize_session_state()
 
 def next_step():
     st.session_state.current_step += 1
+
+def previous_step():
+    if st.session_state.current_step > 0:
+        st.session_state.current_step -= 1
 
 def render_step(step, question_number):
     step_type = step['type']
