@@ -3,7 +3,8 @@ import json
 import os
 import tempfile
 import string
-import time
+from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
@@ -256,7 +257,7 @@ def text_quiz_template(data, question_number):
         handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}", type_check='contains')
 
 def picture_quiz_template(data, question_number):
-    st.write(f"Question {question_number}: Picture Talk")
+    st.write(f"Question {question_number}: Picture Quiz")
     st.image(data['image_url'])
     for i, question in enumerate(data['questions']):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
@@ -324,7 +325,7 @@ def render_step(step, question_number):
         voice_quiz_template(step, question_number)
     elif step_type == 'pictureQuiz':
         picture_quiz_template(step, question_number)
-    elif step_type == 'pictureDesciription':
+    elif step_type == 'pictureDescription':
         picture_description_template(step, question_number)
 
 st.title("Interactive Learning Path")

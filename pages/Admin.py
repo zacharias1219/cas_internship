@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz", "pictureTalk", "PictureDescription"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz", "pictureQuiz", "pictureDescription"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -142,34 +142,34 @@ elif question_type == "voiceQuiz":
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
 
-elif question_type == "pictureTalk":
+elif question_type == "pictureQuiz":
     image_url = st.sidebar.text_input("Image URL")
     question_1 = st.sidebar.text_input("Question 1")
     answer_1 = st.sidebar.text_input("Answer 1")
     hint_1 = st.sidebar.text_input("Hint 1")
     if st.sidebar.button("Add Question"):
         new_question = {
-            "type": "pictureTalk",
+            "type": "pictureQuiz",
             "image_url": image_url,
             "questions": [
                 {"question": question_1, "correct_answer": answer_1, "hint": hint_1}
             ],
-            "path": "pictureTalk"
+            "path": "pictureQuiz"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
 
-elif question_type == "PictureDescription":
+elif question_type == "pictureDescription":
     image_url = st.sidebar.text_input("Image URL")
-    question = st.sidebar.text_input("Question 1")
+    question = st.sidebar.text_input("Question")
     if st.sidebar.button("Add Question"):
         new_question = {
-            "type": "PictureDescription",
+            "type": "pictureDescription",
             "image_url": image_url,
             "questions": [
                 {"question": question}
             ],
-            "path": "PictureDescription"
+            "path": "pictureDescription"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
