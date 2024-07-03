@@ -261,7 +261,7 @@ def picture_quiz_template(data, question_number):
     st.image(data['image_url'])
     for i, question in enumerate(data['questions']):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
+    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}", pause_threshold=2.5, icon_size="2x")
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -272,7 +272,7 @@ def picture_quiz_template(data, question_number):
         
         for i, question in enumerate(data['questions']):
             answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check wheter the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two sentences that I will give you and nothing more. Those two sentence are: if it is similar then say 'Well Done' other wise say 'Try again'."
+            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two sentences that I will give you and nothing more. Those two sentence are: if it is similar then say 'Well Done' otherwise say 'Try again'."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
@@ -356,10 +356,20 @@ if current_step_index < len(steps):
 else:
     st.write("You have completed the path!")
 
-# Always display the Next button
-if st.button("Next"):
-    next_step()
-    st.experimental_rerun()
+# Navigation buttons
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Previous"):
+        if st.session_state.current_step  > 0:
+            st.session_state.current_step -= 1
+            st.rerun()
+
+with col2:
+    if st.button("Next"):
+        if st.session_state.current_step < len(steps) - 1:
+            st.session_state.current_step += 1
+            st.rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
