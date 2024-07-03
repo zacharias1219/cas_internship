@@ -55,45 +55,43 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False, type
 
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
-        
+
         if isinstance(correct_answer, list):
             normalized_correct_answers = [normalize_text(answer) for answer in correct_answer]
         else:
             normalized_correct_answers = [normalize_text(correct_answer)]
 
-        correct_answer_match = any(fuzz.ratio(normalized_transcription, normalized_correct_answer) >= 90 for normalized_correct_answer in normalized_correct_answers)
-
         if type_check == 'contains':
-            if any(contains_phrase(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
+            if any(contains_phrase(normalized_transcription, answer) for answer in normalized_correct_answers):
                 st.write(f"You Said: {transcription}")
                 st.success("Correct answer!")
                 st.session_state[f"audio_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
+                highlighted_user_response = highlight_errors(transcription, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"audio_correct_{key}"] = False
         else:
-            similarity_score = max(fuzz.ratio(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers)
-            percentage_correct = similarity_score
+            similarity_scores = [fuzz.ratio(normalized_transcription, answer) for answer in normalized_correct_answers]
+            percentage_correct = max(similarity_scores)
 
             if check_partial:
-                if any(contains_phrase(normalized_transcription, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
+                if any(contains_phrase(normalized_transcription, answer) for answer in normalized_correct_answers):
                     st.write(f"You Said: {transcription}")
                     st.success("Correct answer!")
                     st.session_state[f"audio_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
+                    highlighted_user_response = highlight_errors(transcription, correct_answer)
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"audio_correct_{key}"] = False
             else:
-                if correct_answer_match:
+                if percentage_correct >= 90:
                     st.write(f"You Said: {transcription}")
                     st.success("Correct answer!")
                     st.session_state[f"audio_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(transcription, normalized_correct_answers[0])
+                    highlighted_user_response = highlight_errors(transcription, correct_answer)
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"audio_correct_{key}"] = False
@@ -103,45 +101,43 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
     user_response = st.text_input("Your answer", key=key)
     if st.button("Submit", key=f"submit_{key}"):
         normalized_user_response = normalize_text(user_response)
-        
+
         if isinstance(correct_answer, list):
             normalized_correct_answers = [normalize_text(answer) for answer in correct_answer]
         else:
             normalized_correct_answers = [normalize_text(correct_answer)]
 
-        correct_answer_match = any(fuzz.ratio(normalized_user_response, normalized_correct_answer) >= 90 for normalized_correct_answer in normalized_correct_answers)
-
         if type_check == 'contains':
-            if any(contains_phrase(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
+            if any(contains_phrase(normalized_user_response, answer) for answer in normalized_correct_answers):
                 st.write(f"You Said: {user_response}")
                 st.success("Correct answer!")
                 st.session_state[f"text_correct_{key}"] = True
             else:
-                highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
+                highlighted_user_response = highlight_errors(user_response, correct_answer)
                 st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                 st.error(f"Incorrect answer, please try again.")
                 st.session_state[f"text_correct_{key}"] = False
         else:
-            similarity_score = max(fuzz.ratio(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers)
-            percentage_correct = similarity_score
+            similarity_scores = [fuzz.ratio(normalized_user_response, answer) for answer in normalized_correct_answers]
+            percentage_correct = max(similarity_scores)
 
             if check_partial:
-                if any(contains_phrase(normalized_user_response, normalized_correct_answer) for normalized_correct_answer in normalized_correct_answers):
+                if any(contains_phrase(normalized_user_response, answer) for answer in normalized_correct_answers):
                     st.write(f"You Said: {user_response}")
                     st.success("Correct answer!")
                     st.session_state[f"text_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
+                    highlighted_user_response = highlight_errors(user_response, correct_answer)
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"text_correct_{key}"] = False
             else:
-                if correct_answer_match:
+                if percentage_correct >= 90:
                     st.write(f"You Said: {user_response}")
                     st.success("Correct answer!")
                     st.session_state[f"text_correct_{key}"] = True
                 else:
-                    highlighted_user_response = highlight_errors(user_response, normalized_correct_answers[0])
+                    highlighted_user_response = highlight_errors(user_response, correct_answer)
                     st.markdown(f"Errors: {highlighted_user_response}", unsafe_allow_html=True)
                     st.error(f"Incorrect answer, please try again.")
                     st.session_state[f"text_correct_{key}"] = False
@@ -314,7 +310,6 @@ def picture_description_template(data, question_number):
             transcription_2 = speech_to_text(audio_file_path)
             st.write(f"You Said: {transcription_2}")
 
-
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -326,8 +321,7 @@ def next_step():
     st.session_state.current_step += 1
 
 def previous_step():
-    if st.session_state.current_step > 0:
-        st.session_state.current_step -= 1
+    st.session_state.current_step -= 1
 
 def render_step(step, question_number):
     step_type = step['type']
@@ -376,14 +370,14 @@ col1, col2 = st.columns(2)
 with col1:
     if st.button("Previous"):
         if st.session_state.current_step  > 0:
-            st.session_state.current_step -= 1
-            st.rerun()
+            previous_step()
+            st.experimental_rerun()
 
 with col2:
     if st.button("Next"):
         if st.session_state.current_step < len(steps) - 1:
-            st.session_state.current_step += 1
-            st.rerun()
+            next_step()
+            st.experimental_rerun()
 
 # Custom CSS to position the footer container
 st.markdown("""
@@ -393,7 +387,3 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# Create footer container for the microphone
-footer_container = st.container()
-footer_container.float("bottom: 0rem;")
