@@ -290,16 +290,16 @@ def picture_description_template(data, question_number):
         transcription = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription}")
         
-    st.markdown("Speak a bit more.")
+        st.markdown("Speak a bit more.")
 
-    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
-    if audio_data:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-            audio_file.write(audio_data)
-            audio_file_path = audio_file.name
+        audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
+        if audio_data:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+                audio_file.write(audio_data)
+                audio_file_path = audio_file.name
 
-        transcription = speech_to_text(audio_file_path)
-        st.write(f"You Said: {transcription}")
+            transcription = speech_to_text(audio_file_path)
+            st.write(f"You Said: {transcription}")
 
 # Initialize session state
 def initialize_session_state():
