@@ -217,6 +217,7 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Lastly, you can ask about something specific that they answered (not always though). Most importantly, keep your response short and concise, maximum two sentences."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
+    st.audio(assistant_response, format="audio/mp3", start_time=0)
     
     # Text-to-Speech for bot response
     audio_response_path = text_to_speech(assistant_response)
@@ -375,13 +376,7 @@ with col2:
 st.markdown("""
     <style>
     .css-18e3th9 {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background-color: white;
-        padding: 10px;
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-        text-align: center;
+        float: bottom;
     }
     </style>
 """, unsafe_allow_html=True)
