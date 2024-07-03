@@ -376,7 +376,13 @@ with col2:
 st.markdown("""
     <style>
     .css-18e3th9 {
-        float: bottom;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: white;
+        padding: 10px;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
