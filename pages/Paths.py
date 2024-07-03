@@ -10,7 +10,6 @@ from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 from fuzzywuzzy import fuzz
 import difflib
-from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -261,7 +260,7 @@ def picture_quiz_template(data, question_number):
     st.image(data['image_url'])
     for i, question in enumerate(data['questions']):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}", pause_threshold=2.5, icon_size="2x")
+    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -272,7 +271,7 @@ def picture_quiz_template(data, question_number):
         
         for i, question in enumerate(data['questions']):
             answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two sentences that I will give you and nothing more. Those two sentence are: if it is similar then say 'Well Done' otherwise say 'Try again'."
+            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer. It does not have to be completely similar, since humans have different perspectives. Very Important point: You should only respond with the two sentences that I will give you and nothing more. Those two sentences are: if it is similar then say 'Well Done' otherwise say 'Try again'."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
@@ -283,7 +282,7 @@ def picture_description_template(data, question_number):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True)
     
     # First audio response
-    audio_data_1 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
+    audio_data_1 = audio_recorder(f"Record your response (1):", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
     if audio_data_1:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data_1)
@@ -295,7 +294,7 @@ def picture_description_template(data, question_number):
         st.markdown("Speak a bit more.")
 
         # Second audio response
-        audio_data_2 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_2_{question_number}", pause_threshold=2.5, icon_size="2x")
+        audio_data_2 = audio_recorder(f"Record your response (2):", key=f"picture_desc_audio_2_{question_number}", pause_threshold=2.5, icon_size="2x")
         if audio_data_2:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
                 audio_file.write(audio_data_2)
