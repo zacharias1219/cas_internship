@@ -113,6 +113,17 @@
                 }
             ],
             "path": "pictureQuiz"
+        },
+        {
+            "id": 12,
+            "type": "pictureDescription",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
+            "questions": [
+                {
+                    "question": "Describe the picture."
+                }
+            ],
+            "path": "pictureDescription"
         }
     ]
 }

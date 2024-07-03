@@ -277,6 +277,31 @@ def picture_quiz_template(data, question_number):
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
             st.markdown(the_answer)
 
+def picture_description_template(data, question_number):
+    st.write(f"Question {question_number}: Picture Description")
+    st.image(data['image_url'])
+    for i, question in enumerate(data['questions']):
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True)
+    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
+    if audio_data:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+
+        transcription = speech_to_text(audio_file_path)
+        st.write(f"You Said: {transcription}")
+        
+    st.markdown("Speak a bit more.")
+
+    audio_data = audio_recorder(f"Record your response:", pause_threshold=2.5, icon_size="2x")
+    if audio_data:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+
+        transcription = speech_to_text(audio_file_path)
+        st.write(f"You Said: {transcription}")
+
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -301,6 +326,8 @@ def render_step(step, question_number):
         voice_quiz_template(step, question_number)
     elif step_type == 'pictureQuiz':
         picture_quiz_template(step, question_number)
+    elif step_type == 'pictureDesciription':
+        picture_description_template(step, question_number)
 
 st.title("Interactive Learning Path")
 

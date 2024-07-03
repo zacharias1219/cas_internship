@@ -49,7 +49,7 @@ st.title("Admin Page")
 
 # Add New Question Form
 st.sidebar.title("Add New Question")
-question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz", "pictureTalk"])
+question_type = st.sidebar.selectbox("Question Type", ["video", "botTalk", "pronunciations", "speakOutLoud", "textQuiz", "voiceQuiz", "pictureTalk", "PictureDescription"])
 
 if question_type == "video":
     video_url = st.sidebar.text_input("Video URL")
@@ -155,6 +155,21 @@ elif question_type == "pictureTalk":
                 {"question": question_1, "correct_answer": answer_1, "hint": hint_1}
             ],
             "path": "pictureTalk"
+        }
+        add_question(new_question)
+        st.sidebar.success("Question added successfully!")
+
+elif question_type == "PictureDescription":
+    image_url = st.sidebar.text_input("Image URL")
+    question = st.sidebar.text_input("Question 1")
+    if st.sidebar.button("Add Question"):
+        new_question = {
+            "type": "PictureDescription",
+            "image_url": image_url,
+            "questions": [
+                {"question": question}
+            ],
+            "path": "PictureDescription"
         }
         add_question(new_question)
         st.sidebar.success("Question added successfully!")
