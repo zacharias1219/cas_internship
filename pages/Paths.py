@@ -280,6 +280,7 @@ def picture_quiz_template(data, question_number):
             answer = question.get("hint", "")
             analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise say 'Try again' and give a single sentence about how it can be better(write the sentence in italics)."
             the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
+            st.markdown("Bot:")
             st.markdown(the_answer)
 
 def picture_description_template(data, question_number):
@@ -297,7 +298,7 @@ def picture_description_template(data, question_number):
 
         transcription_1 = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription_1}")
-        
+        st.markdown("Bot")
         st.markdown("Speak a bit more.")
 
         # Second audio response
