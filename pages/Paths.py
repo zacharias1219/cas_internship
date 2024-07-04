@@ -293,6 +293,7 @@ def picture_quiz_template(data, question_number):
         if "Well Done" in the_answer:
             if current_question_index < len(questions) - 1:
                 st.session_state[f"current_question_{question_number}"] += 1
+                st.rerun()      
             else:
                 st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
         else:
