@@ -113,7 +113,7 @@
                 },
                 {
                     "question": "What is the color of the sky?",
-                    "hint": "Blue"
+                    "hint": "The color of the sky is Blue"
                 }
             ],
             "path": "pictureQuiz"
