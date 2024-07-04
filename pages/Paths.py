@@ -274,6 +274,9 @@ def picture_quiz_template(data, question_number):
     questions = data['questions']
     question = questions[current_question_index]
 
+    if current_question_index>0:
+        st.markdown("Well Done, Next Question")
+
     st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
     audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
     if audio_data:
