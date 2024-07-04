@@ -55,11 +55,6 @@ def handle_audio_response(prompt, correct_answer, key, check_partial=False, type
             audio_file.write(audio_data)
             audio_file_path = audio_file.name
 
-        # Ensure the audio file is long enough
-        if os.path.getsize(audio_file_path) < 1024:  # 1 KB is a rough estimate for 0.1 seconds
-            st.error("The audio file is too short. Please record a longer response.")
-            return
-
         transcription = speech_to_text(audio_file_path)
         normalized_transcription = normalize_text(transcription)
 
@@ -229,10 +224,10 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
 
     system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Lastly, you can ask about something specific that they answered (not always though). Most importantly, keep your response short and concise, maximum two sentences."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
-    st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})    
     # Text-to-Speech for bot response
     audio_response_path = text_to_speech(assistant_response)
     autoplay_audio(audio_response_path)
+    st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
@@ -271,41 +266,37 @@ def text_quiz_template(data, question_number):
 def picture_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Picture Quiz")
     st.image(data['image_url'])
-    current_question_index = st.session_state.get(f"picture_quiz_current_question_{data['id']}", 0)
-    
-    if current_question_index < len(data['questions']):
-        question = data['questions'][current_question_index]
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+
+    if f"current_question_{question_number}" not in st.session_state:
+        st.session_state[f"current_question_{question_number}"] = 0
+
+    current_question_index = st.session_state[f"current_question_{question_number}"]
+    questions = data['questions']
+    question = questions[current_question_index]
+
+    st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
+    if audio_data:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+
+        transcription = speech_to_text(audio_file_path)
+        st.write(f"You Said: {transcription}")
         
-        audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
-        if audio_data:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-                audio_file.write(audio_data)
-                audio_file_path = audio_file.name
+        answer = question.get("hint", "")
+        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise start with 'Try again' and give a single sentence about how it can be better(write the sentence in italics)."
+        the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
+        st.markdown("Bot:")
+        st.markdown(the_answer)
 
-            # Ensure the audio file is long enough
-            if os.path.getsize(audio_file_path) < 1024:  # 1 KB is a rough estimate for 0.1 seconds
-                st.error("The audio file is too short. Please record a longer response.")
-                return
-
-            transcription = speech_to_text(audio_file_path)
-            st.write(f"You Said: {transcription}")
-            
-            correct_answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer '{correct_answer}' and a given answer '{transcription}', and check whether the given answer is similar to the predefined answer. It does not have to be completely similar, since humans have different perspectives. Very Important point: You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise say 'Try again' and give a single sentence about how it can be better (write the sentence in italics)."
-            the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
-            st.markdown("Bot:")
-            st.markdown(the_answer)
-            
-            if "Well Done" in the_answer:
-                st.session_state[f"picture_quiz_current_question_{data['id']}"] = current_question_index + 1
-                if current_question_index + 1 >= len(data['questions']):
-                    st.success("You have answered all questions correctly! You can proceed to the next path.")
-                st.experimental_rerun()
+        if "Well Done" in the_answer:
+            if current_question_index < len(questions) - 1:
+                st.session_state[f"current_question_{question_number}"] += 1
             else:
-                st.session_state[f"picture_quiz_current_question_{data['id']}"] = current_question_index
-    else:
-        st.success("You have answered all questions correctly! You can proceed to the next path.")
+                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+        else:
+            st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
 
 def picture_description_template(data, question_number):
     st.write(f"Question {question_number}: Picture Description")
