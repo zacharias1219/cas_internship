@@ -110,6 +110,10 @@
                 {
                     "question": "What are the children doing?",
                     "hint": "Sitting under the tree"
+                },
+                {
+                    "question": "What is the color of the sky?",
+                    "hint": "Blue"
                 }
             ],
             "path": "pictureQuiz"

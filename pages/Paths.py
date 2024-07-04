@@ -24,6 +24,8 @@ question_data = load_json('questions.json')
 
 # Helper function to normalize text by removing punctuation and extra whitespace
 def normalize_text(text):
+    if not text or not isinstance(text, str):
+        return ""
     translator = str.maketrans('', '', string.punctuation)
     normalized = ' '.join(text.lower().translate(translator).split())
     return normalized
@@ -265,9 +267,16 @@ def text_quiz_template(data, question_number):
 def picture_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Picture Quiz")
     st.image(data['image_url'])
-    for i, question in enumerate(data['questions']):
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}", pause_threshold=2.5, icon_size="2x")
+
+    if f"current_question_{question_number}" not in st.session_state:
+        st.session_state[f"current_question_{question_number}"] = 0
+
+    current_question_index = st.session_state[f"current_question_{question_number}"]
+    questions = data['questions']
+    question = questions[current_question_index]
+
+    st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
     if audio_data:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
             audio_file.write(audio_data)
@@ -276,12 +285,19 @@ def picture_quiz_template(data, question_number):
         transcription = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription}")
         
-        for i, question in enumerate(data['questions']):
-            answer = question.get("hint", "")
-            analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise say 'Try again' and give a single sentence about how it can be better(write the sentence in italics)."
-            the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
-            st.markdown("Bot:")
-            st.markdown(the_answer)
+        answer = question.get("hint", "")
+        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done' otherwise say 'Try again' and give a single sentence about how it can be better(write the sentence in italics)."
+        the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
+        st.markdown("Bot:")
+        st.markdown(the_answer)
+
+        if "Well Done" in the_answer:
+            if current_question_index < len(questions) - 1:
+                st.session_state[f"current_question_{question_number}"] += 1
+            else:
+                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+        else:
+            st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
 
 def picture_description_template(data, question_number):
     st.write(f"Question {question_number}: Picture Description")
@@ -299,7 +315,10 @@ def picture_description_template(data, question_number):
         transcription_1 = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription_1}")
         st.markdown("Bot")
-        st.markdown("Speak a bit more.")
+        middle_response = "Speak a bit more."
+        st.markdown(middle_response)
+        audio_response_path = text_to_speech(middle_response)
+        autoplay_audio(audio_response_path)
 
         # Second audio response
         audio_data_2 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_2_{question_number}", pause_threshold=2.5, icon_size="2x")
