@@ -285,7 +285,7 @@ def picture_quiz_template(data, question_number):
         st.write(f"You Said: {transcription}")
         
         answer = question.get("hint", "")
-        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with the two scenarios that I will give you and nothing more. Those two scenarios are: if it is similar then say 'Well Done', if theyr are not similar then say something like 'Try again, You might have missed something'(write the sentence in italics)."
+        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with either of the two sentences that I will give you and nothing more. Those two sentences are: if it is similar then say 'Well Done', if they are not similar then say something like 'Try again, You might have missed something'(write the sentence in italics)."
         the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
         st.markdown("Bot:")
         st.markdown(the_answer)
