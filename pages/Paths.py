@@ -299,6 +299,7 @@ def picture_quiz_template(data, question_number):
                 st.rerun()      
             else:
                 st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+                st.markdown("Completed")
         else:
             st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
 
