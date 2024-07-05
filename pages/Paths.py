@@ -410,11 +410,16 @@ with col2:
             next_step()
             st.experimental_rerun()
 
-# Custom CSS to position the footer container
 st.markdown("""
     <style>
     .css-18e3th9 {
         float: bottom;
     }
     </style>
-""", unsafe_allow_html=True)
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Scroll to the bottom of the page
+        window.scrollTo(0, document.body.scrollHeight);
+    });
+    </script>
+    """, unsafe_allow_html=True)
