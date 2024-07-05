@@ -308,6 +308,8 @@ def picture_description_template(data, question_number):
     st.image(data['image_url'])
     for i, question in enumerate(data['questions']):
         st.markdown(f'{question["question"]}', unsafe_allow_html=True)
+        audio_response_path = text_to_speech(question["question"])
+        autoplay_audio(audio_response_path)
     
     # First audio response
     audio_data_1 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
@@ -333,6 +335,11 @@ def picture_description_template(data, question_number):
 
             transcription_2 = speech_to_text(audio_file_path)
             st.write(f"You Said: {transcription_2}")
+            st.markdown("Bot")
+            final_response = "Thank you. You can move onto the next."
+            st.markdown(final_response)
+            audio_response_path = text_to_speech(final_response)
+            autoplay_audio(audio_response_path)
 
 # Initialize session state
 def initialize_session_state():
