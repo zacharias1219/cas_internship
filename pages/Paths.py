@@ -321,7 +321,7 @@ def picture_description_template(data, question_number):
         transcription_1 = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription_1}")
         st.markdown("Bot")
-        middle_response = "Speak a bit more."
+        middle_response = "Could you elaborate more on this"
         st.markdown(middle_response)
         audio_response_path = text_to_speech(middle_response)
         autoplay_audio(audio_response_path)
