@@ -3,15 +3,36 @@ import json
 import os
 import tempfile
 import string
+import requests
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 import difflib
+import google.generativeai as genai
+from PIL import Image
 
 # Load environment variables
 load_dotenv()
+
+# Configure Google Gemini Vision
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+def analyze_picture(image_path):
+    with open(image_path, "rb") as image_file:
+        image_data = image_file.read()
+    image_base64 = base64.b64encode(image_data).decode()
+
+    response = genai.generate_content([{
+        "type": "image/jpeg",
+        "data": image_base64
+    }])
+
+    return response[0]["text"]
+
+def validate_answer(user_answer, model_description):
+    return user_answer.lower() in model_description.lower()
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -341,6 +362,40 @@ def picture_description_template(data, question_number):
             audio_response_path = text_to_speech(final_response)
             autoplay_audio(audio_response_path)
 
+def picture_description_with_vision(data, question_number):
+    st.write(f"Question {question_number}: Picture Description with Vision Model")
+    st.image(data['image_url'])
+
+    # Analyze picture using vision model
+    model_description = analyze_picture(data['image_url'])
+    
+    if 'current_question_index' not in st.session_state:
+        st.session_state.current_question_index = 0
+
+    questions = data['questions']
+    current_question = questions[st.session_state.current_question_index]
+
+    st.markdown(f'{current_question["question"]}', unsafe_allow_html=True)
+    audio_response_path = text_to_speech(current_question["question"])
+    autoplay_audio(audio_response_path)
+    
+    user_answer = st.text_input("Your answer", key=f"picture_desc_answer_{question_number}_{st.session_state.current_question_index}")
+
+    if st.button("Submit", key=f"submit_{question_number}_{st.session_state.current_question_index}"):
+        if validate_answer(user_answer, model_description):
+            st.success("Correct answer!")
+            st.session_state.current_question_index += 1
+            if st.session_state.current_question_index < len(questions):
+                st.experimental_rerun()
+            else:
+                st.success("You have completed the picture description task!")
+                st.session_state.current_question_index = 0
+                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+                st.experimental_rerun()
+        else:
+            st.error("Incorrect answer, please try again.")
+            st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
+
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -370,6 +425,8 @@ def render_step(step, question_number):
         picture_quiz_template(step, question_number)
     elif step_type == 'pictureDescription':
         picture_description_template(step, question_number)
+    elif step_type == 'pictureDescriptionWithVision':
+        picture_description_with_vision(step, question_number)
 
 st.title("Interactive Learning Path")
 
