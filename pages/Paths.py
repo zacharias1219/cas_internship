@@ -4,7 +4,6 @@ import os
 import tempfile
 import string
 from datetime import datetime, timedelta
-from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
