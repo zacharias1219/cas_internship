@@ -3,36 +3,16 @@ import json
 import os
 import tempfile
 import string
-import requests
 from datetime import datetime, timedelta
 from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 import difflib
-import google.generativeai as genai
-from PIL import Image
+import requests
 
 # Load environment variables
 load_dotenv()
-
-# Configure Google Gemini Vision
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-def analyze_picture(image_path):
-    with open(image_path, "rb") as image_file:
-        image_data = image_file.read()
-    image_base64 = base64.b64encode(image_data).decode()
-
-    response = genai.generate_content([{
-        "type": "image/jpeg",
-        "data": image_base64
-    }])
-
-    return response[0]["text"]
-
-def validate_answer(user_answer, model_description):
-    return user_answer.lower() in model_description.lower()
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -384,17 +364,44 @@ def picture_description_with_vision(data, question_number):
     if st.button("Submit", key=f"submit_{question_number}_{st.session_state.current_question_index}"):
         if validate_answer(user_answer, model_description):
             st.success("Correct answer!")
-            st.session_state.current_question_index += 1
-            if st.session_state.current_question_index < len(questions):
-                st.experimental_rerun()
-            else:
-                st.success("You have completed the picture description task!")
-                st.session_state.current_question_index = 0
-                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
-                st.experimental_rerun()
+            system_prompt = f"understand the image and the user's {user_answer} and check if it is correct based on the provided image, also ask a follow up question"
+            the_next_question = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
+            audio_response_path = text_to_speech(the_next_question)
+            autoplay_audio(audio_response_path)
+            
+            follow_up_answer = st.text_input("Your follow-up answer", key=f"follow_up_answer_{question_number}_{st.session_state.current_question_index}")
+
+            if st.button("Submit Follow-Up", key=f"submit_follow_up_{question_number}_{st.session_state.current_question_index}"):
+                st.success("Thank you. You can move onto the next.")
+                st.session_state.current_question_index += 1
+                if st.session_state.current_question_index < len(questions):
+                    st.experimental_rerun()
+                else:
+                    st.session_state.current_question_index = 0
+                    st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+                    st.experimental_rerun()
         else:
             st.error("Incorrect answer, please try again.")
             st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
+
+# Function to validate user answer
+def validate_answer(user_answer, model_description):
+    return user_answer.lower() in model_description.lower()
+
+# Function to call vision model API (replace with actual API call)
+def analyze_picture(image_path):
+    headers = {
+        "Authorization": f"Bearer {os.getenv('GEMINI_API_KEY')}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "image": image_path
+    }
+    response = requests.post("https://api.your-vision-model.com/analyze", headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json().get("description", "")
+    else:
+        return "Description not available."
 
 # Initialize session state
 def initialize_session_state():
