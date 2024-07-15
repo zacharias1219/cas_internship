@@ -1,0 +1,136 @@
+{
+    "questions": [
+        {
+            "id": 2,
+            "type": "botTalk",
+            "phrases": "Tell me about yourself.",
+            "path": "botTalk",
+            "time": 1,
+            "additional": "It should be in bullet points."
+        },
+        {
+            "id": 1,
+            "type": "video",
+            "content": "https://www.youtube.com/watch?v=221F55VPp2M",
+            "questions": [
+                {
+                    "question": "What is said at 0:45?",
+                    "correct_answer": "Man, it's so hard to shop for girls."
+                }
+            ],
+            "path": "video"
+        },
+        {
+            "id": 10,
+            "type": "voiceQuiz",
+            "questions": [
+                {
+                    "question": "What is the capital of France?",
+                    "correct_answer": "Paris",
+                    "hint": "The capital of France starts with P"
+                },
+                {
+                    "question": "What is 2 + 2?",
+                    "correct_answer": "4",
+                    "hint": "The answer is 4"
+                }
+            ],
+            "path": "voiceQuiz"
+        },
+        {
+            "id": 4,
+            "type": "video",
+            "content": "https://www.youtube.com/watch?v=0Kvw2BPKjz0",
+            "questions": [
+                {
+                    "question": "What is said at 0:58?",
+                    "correct_answer": "Okay we all go together or we go one at a time."
+                }
+            ],
+            "path": "video"
+        },
+        {
+            "id": 5,
+            "type": "speakOutLoud",
+            "sentences": [
+                "The quick brown fox jumps over the lazy dog.",
+                "She sells seashells by the seashore."
+            ],
+            "path": "speakOutLoud"
+        },
+        {
+            "id": 6,
+            "type": "speakOutLoud",
+            "sentences": [
+                "How much wood would a woodchuck chuck if a woodchuck could chuck wood?",
+                "Peter Piper picked a peck of pickled peppers."
+            ],
+            "path": "speakOutLoud"
+        },
+        {
+            "id": 7,
+            "type": "speakOutLoud",
+            "sentences": [
+                "Narendra Modi became prime minister of India in 2014. It was a land slide victory for BJP party",
+                "BJP came to power after 20 years."
+            ],
+            "path": "speakOutLoud"
+        },
+        {
+            "id": 8,
+            "type": "speakOutLoud",
+            "sentences": [
+                "Theory of evolution by Charles Darwin states that every species took birth from one single cell. This cell was first born thousand of years ago",
+                "First came the plants then the Animals like Dinosaurs and then came the mammals."
+            ],
+            "path": "speakOutLoud"
+        },
+        {
+            "id": 9,
+            "type": "textQuiz",
+            "questions": [
+                {
+                    "question": "What is the capital of France?",
+                    "correct_answer": "Paris",
+                    "hint": "The capital of France starts with P"
+                },
+                {
+                    "question": "What is 2 + 2?",
+                    "correct_answer": [
+                        "4",
+                        "Four"
+                    ],
+                    "hint": "The answer is 4"
+                }
+            ],
+            "path": "textQuiz"
+        },
+        {
+            "id": 11,
+            "type": "pictureQuiz",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
+            "questions": [
+                {
+                    "question": "What are the children doing?",
+                    "hint": "Sitting under the tree"
+                },
+                {
+                    "question": "What is the color of the sky?",
+                    "hint": "The color of the sky is Blue"
+                }
+            ],
+            "path": "pictureQuiz"
+        },
+        {
+            "id": 12,
+            "type": "pictureDescriptionWithVision",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
+            "questions": [
+                {
+                    "question": "Describe the picture."
+                }
+            ],
+            "path": "pictureDescriptionWithVision"
+        }
+    ]
+}

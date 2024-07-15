@@ -2,22 +2,16 @@ import streamlit as st
 import json
 import os
 import tempfile
-import requests
 import string
-from fuzzywuzzy import fuzz
 from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
-from PIL import Image
-import google.generativeai as genai
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 import difflib
 
 # Load environment variables
 load_dotenv()
-
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-model = genai.GenerativeModel('gemini-pro-vision')
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -26,7 +20,7 @@ def load_json(file_path):
             return json.load(file)
     return {"questions": []}
 
-question_data = load_json('questions.json')
+question_data = load_json('questions2.json')
 
 # Helper function to normalize text by removing punctuation and extra whitespace
 def normalize_text(text):
@@ -238,50 +232,6 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
 
-# Function to get the Gemini model response
-def get_gemini_response(input_text, image, prompt):
-    response = model.generate_content([input_text, image[0], prompt])
-    return response.text
-
-# Function to handle image input for the vision model
-def input_image_setup(image_url):
-    response = requests.get(image_url)
-    image_bytes = response.content
-
-    image_parts = [
-        {
-            "mime_type": "image/jpeg",
-            "data": image_bytes
-        }
-    ]
-    return image_parts
-
-# Picture description template with vision model integration
-def picture_description_with_vision(data, question_number):
-    st.write(f"Question {question_number}: Picture Description with Vision Model")
-    st.image(data['image_url'])
-
-    for i, question in enumerate(data['questions']):
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True)
-        audio_response_path = text_to_speech(question["question"])
-        autoplay_audio(audio_response_path)
-
-    audio_data_1 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
-    if audio_data_1:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-            audio_file.write(audio_data_1)
-            audio_file_path = audio_file.name
-
-        transcription_1 = speech_to_text(audio_file_path)
-        st.write(f"You Said: {transcription_1}")
-        st.markdown("Bot")
-        input_prompt = f"You need to understand the image as well as the user's response '{transcription_1}' and give me a follow-up question based on the user's response."
-        image_parts = input_image_setup(data['image_url'])
-        response = get_gemini_response(transcription_1, image_parts, input_prompt)
-        st.write(response)
-        audio_response_path = text_to_speech(response)
-        autoplay_audio(audio_response_path)
-
 # Template functions
 def video_template(data, question_number):
     st.write(f"Question {question_number}: Video")
@@ -353,6 +303,44 @@ def picture_quiz_template(data, question_number):
         else:
             st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
 
+def picture_description_template(data, question_number):
+    st.write(f"Question {question_number}: Picture Description")
+    st.image(data['image_url'])
+    for i, question in enumerate(data['questions']):
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True)
+        audio_response_path = text_to_speech(question["question"])
+        autoplay_audio(audio_response_path)
+    
+    # First audio response
+    audio_data_1 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_1_{question_number}", pause_threshold=2.5, icon_size="2x")
+    if audio_data_1:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data_1)
+            audio_file_path = audio_file.name
+
+        transcription_1 = speech_to_text(audio_file_path)
+        st.write(f"You Said: {transcription_1}")
+        st.markdown("Bot")
+        middle_response = "Could you elaborate more on this"
+        st.markdown(middle_response)
+        audio_response_path = text_to_speech(middle_response)
+        autoplay_audio(audio_response_path)
+
+        # Second audio response
+        audio_data_2 = audio_recorder(f"Record your response:", key=f"picture_desc_audio_2_{question_number}", pause_threshold=2.5, icon_size="2x")
+        if audio_data_2:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+                audio_file.write(audio_data_2)
+                audio_file_path = audio_file.name
+
+            transcription_2 = speech_to_text(audio_file_path)
+            st.write(f"You Said: {transcription_2}")
+            st.markdown("Bot")
+            final_response = "Thank you. You can move onto the next."
+            st.markdown(final_response)
+            audio_response_path = text_to_speech(final_response)
+            autoplay_audio(audio_response_path)
+
 # Initialize session state
 def initialize_session_state():
     if 'current_step' not in st.session_state:
@@ -380,8 +368,8 @@ def render_step(step, question_number):
         voice_quiz_template(step, question_number)
     elif step_type == 'pictureQuiz':
         picture_quiz_template(step, question_number)
-    elif step_type == 'pictureDescriptionWithVision':
-        picture_description_with_vision(step, question_number)
+    elif step_type == 'pictureDescription':
+        picture_description_template(step, question_number)
 
 st.title("Interactive Learning Path")
 

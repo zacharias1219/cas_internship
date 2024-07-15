@@ -1,24 +1,31 @@
 {
     "questions": [
         {
-            "id": 1,
-            "type": "video",
-            "content": "https://www.youtube.com/watch?v=221F55VPp2M",
+            "id": 2,
+            "type": "pictureQuiz",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
             "questions": [
                 {
-                    "question": "What is said at 0:45?",
-                    "correct_answer": "Man, it's so hard to shop for girls."
+                    "question": "What are the children doing?",
+                    "hint": "Sitting under the tree"
+                },
+                {
+                    "question": "What is the color of the sky?",
+                    "hint": "The color of the sky is Blue"
                 }
             ],
-            "path": "video"
+            "path": "pictureQuiz"
         },
         {
-            "id": 2,
-            "type": "botTalk",
-            "phrases": "Tell me about yourself.",
-            "path": "botTalk",
-            "time": 1,
-            "additional": "It should be in bullet points."
+            "id": 1,
+            "type": "pictureDescription",
+            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
+            "questions": [
+                {
+                    "question": "Say something about the scene"
+                }
+            ],
+            "path": "pictureDescription"
         },
         {
             "id": 10,
@@ -96,38 +103,14 @@
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": ["4","Four"],
+                    "correct_answer": [
+                        "4",
+                        "Four"
+                    ],
                     "hint": "The answer is 4"
                 }
             ],
             "path": "textQuiz"
-        },
-        {
-            "id": 11,
-            "type": "pictureQuiz",
-            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
-            "questions": [
-                {
-                    "question": "What are the children doing?",
-                    "hint": "Sitting under the tree"
-                },
-                {
-                    "question": "What is the color of the sky?",
-                    "hint": "The color of the sky is Blue"
-                }
-            ],
-            "path": "pictureQuiz"
-        },
-        {
-            "id": 12,
-            "type": "pictureDescriptionWithVision",
-            "image_url": "./images/wp8791936-attack-on-titan-scenery-wallpapers.jpg",
-            "questions": [
-                {
-                    "question": "Describe the picture."
-                }
-            ],
-            "path": "pictureDescriptionWithVision"
         }
     ]
 }
