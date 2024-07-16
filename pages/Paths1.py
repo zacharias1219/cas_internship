@@ -328,7 +328,7 @@ def picture_quiz_template(data, question_number):
 
     if current_question_index > 0:
         if st.session_state['current_answer']:
-            st.markdown(st.session_state['current_answer'])
+            st.markdown(f"{st.session_state['current_answer']}")
         st.markdown("Well Done, Next Question")
 
     st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
@@ -339,7 +339,8 @@ def picture_quiz_template(data, question_number):
             audio_file_path = audio_file.name
 
         transcription = speech_to_text(audio_file_path)
-        current_answer = st.write(f"You Said: {transcription}")
+        current_answer = f"You Said: {transcription}"     
+        st.write(current_answer)
         st.session_state['current_answer'] = current_answer
         
         answer = question.get("hint", "")
