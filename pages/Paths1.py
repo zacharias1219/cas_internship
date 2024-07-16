@@ -324,7 +324,7 @@ def picture_quiz_template(data, question_number):
     questions = data['questions']
     question = questions[current_question_index]
     audio_response_path = text_to_speech(question)
-    st.audio(audio_response_path, format="audio/mp3", start_time=0)
+    autoplay_audio(audio_response_path)
 
     if current_question_index > 0:
         st.markdown("Well Done, Next Question")
