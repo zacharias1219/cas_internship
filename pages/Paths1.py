@@ -327,7 +327,8 @@ def picture_quiz_template(data, question_number):
     autoplay_audio(audio_response_path)
 
     if current_question_index > 0:
-        st.markdown(st.session_state['current_answer'])
+        if st.session_state['current_answer']:
+            st.markdown(st.session_state['current_answer'])
         st.markdown("Well Done, Next Question")
 
     st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
