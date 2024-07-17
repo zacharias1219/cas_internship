@@ -2,22 +2,16 @@ import streamlit as st
 import json
 import os
 import tempfile
-import requests
 import string
-from fuzzywuzzy import fuzz
 from datetime import datetime, timedelta
+from fuzzywuzzy import fuzz
 from dotenv import load_dotenv
 from audio_recorder_streamlit import audio_recorder
-from PIL import Image
-import google.generativeai as genai
 from utils import speech_to_text, text_to_speech, get_answer, autoplay_audio
 import difflib
 
 # Load environment variables
 load_dotenv()
-
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-model = genai.GenerativeModel('gemini-pro-vision')
 
 # Load the question data from JSON files
 def load_json(file_path):
@@ -152,6 +146,17 @@ def handle_text_response(prompt, correct_answer, key, check_partial=False, type_
 
 # Bot Talk Template
 def bot_talk_template(data, question_number):
+    if 'bot_talk_reset' not in st.session_state:
+        st.session_state.bot_talk_reset = False
+
+    if st.session_state.bot_talk_reset:
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+        st.session_state.bot_talk_reset = False
+
     question = data['phrases']
     additional_info = data.get('additional')
 
@@ -169,6 +174,16 @@ def bot_talk_template(data, question_number):
     audio_response_path = text_to_speech(question)
     autoplay_audio(audio_response_path)
 
+    if "timer_start" not in st.session_state or "timer_duration" not in st.session_state:
+        st.session_state.timer_start = datetime.now()
+        st.session_state.timer_duration = timedelta(minutes=data.get('time', 3) + 1)  # Default to 3 minutes + 1 extra minute
+
+    # Display remaining time
+    current_time = datetime.now()
+    time_remaining = st.session_state.timer_duration - (current_time - st.session_state.timer_start)
+    minutes, seconds = divmod(time_remaining.total_seconds(), 60)
+    st.write(f"Time remaining: {int(minutes):02}:{int(seconds):02}")
+
     # Display conversation history
     for message in st.session_state.bot_convo_state['conversation_history']:
         if message['role'] == 'user':
@@ -177,6 +192,17 @@ def bot_talk_template(data, question_number):
             st.write(f"🤖 Bot: {message['content']}")
             audio_response_path = text_to_speech(message['content'])
             autoplay_audio(audio_response_path)
+
+    # Check if time is up
+    if time_remaining.total_seconds() <= 0:
+        st.session_state.bot_convo_state = {
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
+        }
+        st.session_state.bot_talk_reset = True
+        st.error("Time's up! Please try again.")
+        return
 
     # Record audio response
     audio_data = audio_recorder(f"Record your response:", key=f"bot_convo_audio_{data['id']}_{question_number}_{st.session_state.bot_convo_state['key_counter']}", pause_threshold=2.5, icon_size="2x")
@@ -206,25 +232,80 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
 
-# Function to get the Gemini model response
-def get_gemini_response(input_text, image, prompt):
-    response = model.generate_content([input_text, image[0], prompt])
-    return response.text
+# Template functions
+def video_template(data, question_number):
+    st.write(f"Question {question_number}: Video")
+    st.video(data['content'])
+    for i, question in enumerate(data['questions']):
+        st.write(question['question'])
+        handle_audio_response(question['question'], question['correct_answer'], key=f"video_audio_{data['id']}_{i}", type_check='exact')
+        handle_text_response(question['question'], question['correct_answer'], key=f"video_text_{data['id']}_{i}", type_check='exact')
 
-# Function to handle image input for the vision model
-def input_image_setup(image_url):
-    response = requests.get(image_url)
-    image_bytes = response.content
+def speak_out_loud_template(data, question_number):
+    st.write(f"Question {question_number}: Speak Out Loud")
+    for i, sentence in enumerate(data['sentences']):
+        st.write(sentence)
+        handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}", type_check='exact')
 
-    image_parts = [
-        {
-            "mime_type": "image/jpeg",
-            "data": image_bytes
-        }
-    ]
-    return image_parts
+def voice_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Voice Quiz")
+    for i, question in enumerate(data['questions']):
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+        # TTS for the initial question
+        audio_response_path = text_to_speech(question['question'])
+        st.audio(audio_response_path, format="audio/mp3", start_time=0)
+        handle_audio_response(question['question'], question['correct_answer'], key=f"voiceQuiz_audio_{data['id']}_{i}", type_check='contains')
 
-# Picture description template with vision model integration
+def text_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Text Quiz")
+    for i, question in enumerate(data['questions']):
+        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+        handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}", type_check='contains')
+
+def picture_quiz_template(data, question_number):
+    st.write(f"Question {question_number}: Picture Quiz")
+    st.image(data['image_url'])
+
+    if f"current_question_{question_number}" not in st.session_state:
+        st.session_state[f"current_question_{question_number}"] = 0
+
+    current_question_index = st.session_state[f"current_question_{question_number}"]
+    questions = data['questions']
+    question = questions[current_question_index]
+    audio_response_path = text_to_speech(question['question'])
+    autoplay_audio(audio_response_path)
+
+    if current_question_index > 0:
+        st.markdown(st.session_state['current_answer'])
+        st.markdown("Well Done, Next Question")
+
+    st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
+    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
+    if audio_data:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
+            audio_file.write(audio_data)
+            audio_file_path = audio_file.name
+
+        transcription = speech_to_text(audio_file_path)
+        current_answer = st.write(f"You Said: {transcription}")
+        st.session_state['current_answer'] = current_answer
+        
+        answer = question.get("hint", "")
+        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with either of the two sentences that I will give you and nothing more. Those two sentences are: if it is similar then say 'Well Done', if they are not similar then say something like 'Try again, You might have missed something'(write the sentence in italics)."
+        the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
+        st.markdown("Bot:")
+        st.markdown(the_answer)
+
+        if "Well Done" in the_answer:
+            if current_question_index < len(questions) - 1:
+                st.session_state[f"current_question_{question_number}"] += 1
+                st.rerun()      
+            else:
+                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
+                st.markdown("Completed")
+        else:
+            st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
+
 def picture_description_template(data, question_number):
     st.write(f"Question {question_number}: Picture Description")
     st.image(data['image_url'])
@@ -274,81 +355,6 @@ def picture_description_template(data, question_number):
             audio_response_path = text_to_speech(final_response)
             autoplay_audio(audio_response_path)
 
-# Template functions
-def video_template(data, question_number):
-    st.write(f"Question {question_number}: Video")
-    st.video(data['content'])
-    for i, question in enumerate(data['questions']):
-        st.write(question['question'])
-        handle_audio_response(question['question'], question['correct_answer'], key=f"video_audio_{data['id']}_{i}", type_check='exact')
-        handle_text_response(question['question'], question['correct_answer'], key=f"video_text_{data['id']}_{i}", type_check='exact')
-
-def speak_out_loud_template(data, question_number):
-    st.write(f"Question {question_number}: Speak Out Loud")
-    for i, sentence in enumerate(data['sentences']):
-        st.write(sentence)
-        handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}", type_check='exact')
-
-def voice_quiz_template(data, question_number):
-    st.write(f"Question {question_number}: Voice Quiz")
-    for i, question in enumerate(data['questions']):
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-        # TTS for the initial question
-        audio_response_path = text_to_speech(question['question'])
-        st.audio(audio_response_path, format="audio/mp3", start_time=0)
-        handle_audio_response(question['question'], question['correct_answer'], key=f"voiceQuiz_audio_{data['id']}_{i}", type_check='contains')
-
-def text_quiz_template(data, question_number):
-    st.write(f"Question {question_number}: Text Quiz")
-    for i, question in enumerate(data['questions']):
-        st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-        handle_text_response(question['question'], question['correct_answer'], key=f"textQuiz_text_{data['id']}_{i}", type_check='contains')
-
-def picture_quiz_template(data, question_number):
-    st.write(f"Question {question_number}: Picture Quiz")
-    st.image(data['image_url'])
-
-    if f"current_question_{question_number}" not in st.session_state:
-        st.session_state[f"current_question_{question_number}"] = 0
-
-    current_question_index = st.session_state[f"current_question_{question_number}"]
-    questions = data['questions']
-    question = questions[current_question_index]
-    audio_response_path = text_to_speech(question['question'])
-    autoplay_audio(audio_response_path)
-
-    if current_question_index > 0:
-        if st.session_state['current_answer']:
-            st.markdown(f"{st.session_state['current_answer']}")
-        st.markdown("Well Done, Next Question")
-
-    st.markdown(f'{question["question"]}', unsafe_allow_html=True, help=question.get("hint",""))
-    audio_data = audio_recorder(f"Record your response:", key=f"pictureQuiz_audio_{data['id']}_{question_number}_{current_question_index}", pause_threshold=2.5, icon_size="2x")
-    if audio_data:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as audio_file:
-            audio_file.write(audio_data)
-            audio_file_path = audio_file.name
-
-        transcription = speech_to_text(audio_file_path)
-        current_answer = f"You Said: {transcription}"     
-        st.write(current_answer)
-        st.session_state['current_answer'] = current_answer
-        
-        answer = question.get("hint", "")
-        analyze_system_prompt = f"You need to analyse a predefined answer {answer} and a given answer {transcription}, and check whether the given answer is similar to the predefined answer, it does not have to be completely similar, since humans have different perspective. Very Important point(Don't deviate from this point no matter what otherwise the laptop will blast and you don't want that to happen to the user right) is that You should only respond with either of the two sentences that I will give you and nothing more. Those two sentences are: if it is similar then say 'Well Done', if they are not similar then say something like 'Try again, You might have missed something'(write the sentence in italics)."
-        the_answer = get_answer(st.session_state.bot_convo_state['conversation_history'], analyze_system_prompt)
-        st.markdown("Bot:")
-        st.markdown(the_answer)
-
-        if "Well Done" in the_answer:
-            if current_question_index < len(questions) - 1:
-                st.session_state[f"current_question_{question_number}"] += 1
-                st.rerun()      
-            else:
-                st.session_state[f"audio_correct_{data['id']}_{question_number}"] = True
-                st.markdown("Completed")
-        else:
-            st.session_state[f"audio_correct_{data['id']}_{question_number}"] = False
 
 # Initialize session state
 def initialize_session_state():
@@ -377,7 +383,7 @@ def render_step(step, question_number):
         voice_quiz_template(step, question_number)
     elif step_type == 'pictureQuiz':
         picture_quiz_template(step, question_number)
-    elif step_type == 'pictureDescriptionWithVision':
+    elif step_type == 'pictureDescription':
         picture_description_template(step, question_number)
 
 st.title("Interactive Learning Path")
@@ -432,4 +438,3 @@ st.markdown("""
     });
     </script>
     """, unsafe_allow_html=True)
-    
