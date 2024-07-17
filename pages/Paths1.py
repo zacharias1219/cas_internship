@@ -157,7 +157,9 @@ def bot_talk_template(data, question_number):
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
-            "conversation_history": []
+            "conversation_history": [],
+            "key_counter": 0,
+            "status": "waiting for you to speak (click the button)"
         }
 
     if not st.session_state.bot_convo_state["conversation_history"]:
@@ -181,6 +183,8 @@ def bot_talk_template(data, question_number):
 
     # Process the recorded audio response
     if audio_data:
+        st.session_state.bot_convo_state['status'] = "listening..."
+        st.session_state.bot_convo_state['key_counter'] += 1
         process_bot_audio_response(audio_data, data, question_number, additional_info)
 
 def process_bot_audio_response(audio_data, data, question_number, additional_info):
@@ -190,6 +194,7 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
 
     transcription = speech_to_text(audio_file_path)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "user", "content": transcription})
+    st.session_state.bot_convo_state['status'] = "analyzing..."
 
     system_prompt = f"Continue the conversation based on the user's input. Make it interactive, but stick to only one question at a time. Don't give the user multiple questions to answer or they'll get flustered. Lastly, you can ask about something specific that they answered (not always though). Most importantly, keep your response short and concise, maximum two sentences."
     assistant_response = get_answer(st.session_state.bot_convo_state['conversation_history'], system_prompt)
@@ -197,6 +202,8 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     audio_response_path = text_to_speech(assistant_response)
     autoplay_audio(audio_response_path)
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
+
+    st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
     st.experimental_rerun()
 
 # Function to get the Gemini model response
@@ -425,3 +432,4 @@ st.markdown("""
     });
     </script>
     """, unsafe_allow_html=True)
+    
