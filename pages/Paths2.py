@@ -246,7 +246,6 @@ def speak_out_loud_template(data, question_number):
     for i, sentence in enumerate(data['sentences']):
         st.write(sentence)
         handle_audio_response(sentence, sentence, key=f"speakOutLoud_audio_{data['id']}_{i}", type_check='exact')
-        handle_text_response(sentence, sentence, key=f"speakOutLoud_text_{data['id']}_{i}", type_check='exact')
 
 def voice_quiz_template(data, question_number):
     st.write(f"Question {question_number}: Voice Quiz")
