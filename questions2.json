@@ -38,7 +38,7 @@
                 },
                 {
                     "question": "What is 2 + 2?",
-                    "correct_answer": "4",
+                    "correct_answer": ["4","four"],
                     "hint": "The answer is 4"
                 }
             ],
