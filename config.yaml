@@ -1,0 +1,22 @@
+# config.yaml
+credentials:
+  usernames:
+    jsmith:
+      email: jsmith@gmail.com
+      failed_login_attempts: 0
+      logged_in: False
+      name: John Smith
+      password: abc # This will be hashed automatically
+    rbriggs:
+      email: rbriggs@gmail.com
+      failed_login_attempts: 0
+      logged_in: False
+      name: Rebecca Briggs
+      password: def # This will be hashed automatically
+cookie:
+  expiry_days: 30
+  key: some_signature_key
+  name: some_cookie_name
+pre-authorized:
+  emails:
+  - melsby@gmail.com

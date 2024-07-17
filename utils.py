@@ -4,6 +4,28 @@ from groq import Groq
 from dotenv import load_dotenv
 import base64
 import streamlit as st
+import streamlit as st
+import yaml
+from yaml.loader import SafeLoader
+import streamlit_authenticator as stauth
+
+# Load configuration
+def load_config(config_path='config.yaml'):
+    with open(config_path) as file:
+        config = yaml.load(file, Loader=SafeLoader)
+    return config
+
+# Initialize authenticator
+def init_authenticator(config):
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days'],
+        config['pre-authorized']
+    )
+    return authenticator
+
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
