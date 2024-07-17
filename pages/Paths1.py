@@ -157,9 +157,7 @@ def bot_talk_template(data, question_number):
 
     if "bot_convo_state" not in st.session_state:
         st.session_state.bot_convo_state = {
-            "conversation_history": [],
-            "key_counter": 0,
-            "status": "waiting for you to speak (click the button)"
+            "conversation_history": []
         }
 
     if not st.session_state.bot_convo_state["conversation_history"]:
