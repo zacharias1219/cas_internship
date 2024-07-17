@@ -264,7 +264,6 @@ def picture_description_template(data, question_number):
     # Retrieve questions from the data
     questions = data['questions']
     first_question = questions[0]['question']
-    second_question = questions[1]['question']
     
     # Display and play the first question
     st.markdown(f'{first_question}', unsafe_allow_html=True)
@@ -281,7 +280,13 @@ def picture_description_template(data, question_number):
         transcription_1 = speech_to_text(audio_file_path)
         st.write(f"You Said: {transcription_1}")
 
-        # Display and play the second question from the database
+        # Check if there is a second question
+        if len(questions) > 1:
+            second_question = questions[1]['question']
+        else:
+            second_question = "Could you elaborate more on this"
+
+        # Display and play the second question
         st.markdown(f'{second_question}', unsafe_allow_html=True)
         audio_response_path = text_to_speech(second_question)
         autoplay_audio(audio_response_path)
