@@ -230,7 +230,7 @@ def process_bot_audio_response(audio_data, data, question_number, additional_inf
     st.session_state.bot_convo_state['conversation_history'].append({"role": "assistant", "content": assistant_response})
 
     st.session_state.bot_convo_state['status'] = "waiting for you to speak (click the button)"
-    st.experimental_rerun()
+    st.rerun()
 
 # Template functions
 def video_template(data, question_number):
@@ -417,13 +417,13 @@ with col1:
     if st.button("Previous"):
         if st.session_state.current_step  > 0:
             previous_step()
-            st.experimental_rerun()
+            st.rerun()
 
 with col2:
     if st.button("Next"):
         if st.session_state.current_step < len(steps) - 1:
             next_step()
-            st.experimental_rerun()
+            st.rerun()
 
 st.markdown("""
     <style>

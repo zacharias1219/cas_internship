@@ -186,12 +186,12 @@ for index, question in enumerate(questions):
     with col1:
         if st.button(f"Delete {index + 1}", key=f"delete_{index}"):
             delete_question(path, question['id'])
-            st.experimental_rerun()
+            st.rerun()
     with col2:
         if st.button(f"Move Up {index + 1}", key=f"move_up_{index}"):
             move_question_up(path, index)
-            st.experimental_rerun()
+            st.rerun()
     with col3:
         if st.button(f"Move Down {index + 1}", key=f"move_down_{index}"):
             move_question_down(path, index)
-            st.experimental_rerun()
+            st.rerun()
