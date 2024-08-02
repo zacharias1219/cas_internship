@@ -417,13 +417,13 @@ with col1:
     if st.button("Previous"):
         if st.session_state.current_step  > 0:
             previous_step()
-            st.experimental_rerun()
+            st.rerun()
 
 with col2:
     if st.button("Next"):
         if st.session_state.current_step < len(steps) - 1:
             next_step()
-            st.experimental_rerun()
+            st.rerun()
 
 st.markdown("""
     <style>
